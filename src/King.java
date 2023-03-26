@@ -32,8 +32,8 @@ public class King extends Piece {
         if (firstMove) {
             boolean rightRookCanCastle = false;
             boolean leftRookCanCastle = false;
-            for (Piece piece : Main.allPieces) {
-                if (piece.pieceType == PieceType.ROOK & piece.color == this.color) {
+            for (Piece piece : (this.color == Color.WHITE) ? Main.whitePieces : Main.blackPieces) {
+                if (piece.pieceType == PieceType.ROOK) {
                     //Checks if the rook can still castle
                     if (((Rook) piece).getFirstMoveStatus()) {
                         if (piece.getCoordinates().coorEquals(new CoorPair(this.getXCoor() + 180, this.getYCoor()))) {
@@ -210,11 +210,9 @@ public class King extends Piece {
     public HashSet<Integer> spacesOpponentCanMove() {
         HashSet<Integer> hashedCoordinates = new HashSet<>();
 
-        for (Piece piece : Main.allPieces) {
-            if (piece.color != this.color) {
-                for (CoorPair potentialMove : piece.movesForCheck()) {
-                    hashedCoordinates.add(potentialMove.hashCode());
-                }
+        for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
+            for (CoorPair potentialMove : piece.movesForCheck()) {
+                hashedCoordinates.add(potentialMove.hashCode());
             }
         }
 

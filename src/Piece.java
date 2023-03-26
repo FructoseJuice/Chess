@@ -518,17 +518,6 @@ public abstract class Piece {
      */
     private boolean ifPieceKing(CoorPair newMove) {
         //If the piece is the king, we have to keep adding moves in this direction
-        for (Piece opponent : Main.allPieces) {
-            if (opponent.pieceType != PieceType.KING &
-                    opponent.color != this.color &
-                    opponent.getCoordinates().hashCode() == newMove.hashCode()) {
-                return false;
-            } else if (opponent.color == this.color &
-                    opponent.getCoordinates().hashCode() == newMove.hashCode()) {
-                return false;
-            }
-
-        }
-        return true;
+        return Main.currentPieceLocations.get(newMove.hashCode()) instanceof King;
     }
 }
