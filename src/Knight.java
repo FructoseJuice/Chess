@@ -8,6 +8,8 @@ public class Knight extends Piece {
 
     @Override
     public ArrayList<CoorPair> findLegalMoves() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> legalMoves = new ArrayList<>();
 
@@ -71,7 +73,7 @@ public class Knight extends Piece {
     private boolean checkNewMove(CoorPair newMove) {
         if (newMove.isInBounds()) {
             if (Main.currentPieceLocations.containsKey(newMove.hashCode())) {
-                return Main.currentPieceLocations.get(newMove.hashCode()) != this.color;
+                return Main.currentPieceLocations.get(newMove.hashCode()).color != this.color;
             } else {
                 return true;
             }
@@ -81,6 +83,8 @@ public class Knight extends Piece {
 
     @Override
     public ArrayList<CoorPair> movesForCheck() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> potentialMoves = new ArrayList<>();
 
@@ -138,7 +142,7 @@ public class Knight extends Piece {
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (newMove.isInBounds()) {
             if (Main.currentPieceLocations.containsKey(newMove.hashCode())) {
-                return Main.currentPieceLocations.get(newMove.hashCode()) == this.color;
+                return Main.currentPieceLocations.get(newMove.hashCode()).color == this.color;
             } else {
                 return true;
             }

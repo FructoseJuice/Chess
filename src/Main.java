@@ -30,13 +30,17 @@ public class Main extends Application {
 
     //Used for checking the location and color of all pieces on board
     //Integer represents HashCode for coordinate pair
-    public static HashMap<Integer, Piece.Color> currentPieceLocations = new HashMap<>();
+    public static HashMap<Integer, Piece> currentPieceLocations = new HashMap<>();
 
     //Represents all pieces currently on the board
     public static List<Piece> allPieces = new ArrayList<>();
+    public static List<Piece> whitePieces = new ArrayList<>();
+    public static List<Piece> blackPieces = new ArrayList<>();
 
     //All queens that can be used for pawn promotion
     public static LinkedList<Piece> extraPieces = new LinkedList<>();
+    //Logs the current player to move
+    Piece.Color playerToMove = Piece.Color.WHITE;
 
 
     public static void main(String[] args) {
@@ -96,9 +100,9 @@ public class Main extends Application {
     //Creates all the pieces on the chessboard
     public void constructPieces() throws FileNotFoundException {
         //All white pieces on chessboard
-        List<Piece> whitePieces = new ArrayList<>();
+        //List<Piece> whitePieces = new ArrayList<>();
         //All black pieces on chessboard
-        List<Piece> blackPieces = new ArrayList<>();
+        //List<Piece> blackPieces = new ArrayList<>();
         //Creates new pieces in order that aren't pawns in both lists
         whitePieces.add(new Rook(Piece.Color.WHITE));
         whitePieces.add(new Knight(Piece.Color.WHITE));
@@ -108,6 +112,7 @@ public class Main extends Application {
         whitePieces.add(new Bishop(Piece.Color.WHITE));
         whitePieces.add(new Knight(Piece.Color.WHITE));
         whitePieces.add(new Rook(Piece.Color.WHITE));
+
 
         blackPieces.add(new Rook(Piece.Color.BLACK));
         blackPieces.add(new Knight(Piece.Color.BLACK));
@@ -124,10 +129,10 @@ public class Main extends Application {
                 xCoor < 8; xCoor++ ) {
 
             blackPieces.get(xCoor).setCoordinates(xCoor * 60, blackY);
-            currentPieceLocations.put(blackPieces.get(xCoor).getCoordinates().hashCode(), Piece.Color.BLACK);
+            currentPieceLocations.put(blackPieces.get(xCoor).getCoordinates().hashCode(), blackPieces.get(xCoor));
 
             whitePieces.get(xCoor).setCoordinates(xCoor * 60, whiteY * 60);
-            currentPieceLocations.put(whitePieces.get(xCoor).getCoordinates().hashCode(), Piece.Color.WHITE);
+            currentPieceLocations.put(whitePieces.get(xCoor).getCoordinates().hashCode(), whitePieces.get(xCoor));
 
         }
 
@@ -142,8 +147,8 @@ public class Main extends Application {
             blackPieces.get(i).setCoordinates(xCoor * 60, blackY * 60);
             whitePieces.get(i).setCoordinates(xCoor * 60, whiteY * 60);
 
-            currentPieceLocations.put(whitePieces.get(i).getCoordinates().hashCode(), Piece.Color.WHITE);
-            currentPieceLocations.put(blackPieces.get(i).getCoordinates().hashCode(), Piece.Color.BLACK);
+            currentPieceLocations.put(whitePieces.get(i).getCoordinates().hashCode(), whitePieces.get(i));
+            currentPieceLocations.put(blackPieces.get(i).getCoordinates().hashCode(), blackPieces.get(i));
 
             ++xCoor;
         }
@@ -165,6 +170,8 @@ public class Main extends Application {
         //Puts all pieces into combined list
         allPieces.addAll(whitePieces);
         allPieces.addAll(blackPieces);
+
+
     }
 
 
@@ -180,36 +187,35 @@ public class Main extends Application {
                         Checks if we put the opponent in check
                          */
         //Grabs the opponent kings Coordinates
-        for (Piece opponentPiece : allPieces) {
-            if (opponentPiece.color != movedColor & opponentPiece.pieceType == Piece.PieceType.KING) {
-                kingCoordinates = opponentPiece.getCoordinates();
-            }
+        if ( movedColor == Piece.Color.WHITE ) {
+            //Opponent king is black
+            kingCoordinates = blackPieces.get(4).getCoordinates();
+        } else {
+            //Opponent king is white
+            kingCoordinates = whitePieces.get(4).getCoordinates();
         }
 
-        HashSet<Integer> hashedCoordinates = new HashSet<>();
-
-        for (Piece piece : allPieces) {
-            if (piece.color == movedColor) {
-                if (piece.pieceType == Piece.PieceType.PAWN) {
-                    for (CoorPair legalMove : piece.movesForCheck()) {
-                        hashedCoordinates.add(legalMove.hashCode());
-                    }
-                } else {
-                    for (CoorPair legalMove : piece.findLegalMoves()) {
-                        hashedCoordinates.add(legalMove.hashCode());
-                    }
+        //Check all the moves for the player who moved
+        for ( Piece piece : (movedColor == Piece.Color.WHITE) ? whitePieces : blackPieces) {
+            if (piece.pieceType == Piece.PieceType.PAWN) {
+                //If piece is a pawn we need special logic to only check diagonals
+                for (CoorPair legalMove : piece.movesForCheck()) {
+                    if (legalMove.hashCode() == kingCoordinates.hashCode()) return true;
+                }
+            } else {
+                for (CoorPair legalMove : piece.findLegalMoves()) {
+                    if (legalMove.hashCode() == kingCoordinates.hashCode()) return true;
                 }
             }
         }
 
-        return hashedCoordinates.contains(kingCoordinates.hashCode());
+        //Return false if no moves were found to put king in check
+        return false;
     }
 
     //Logs a pieces old coordinates before being moved
     CoorPair oldCoors;
     ArrayList<CoorPair> legalMoves = new ArrayList<>();
-    //Logs the current player to move
-    Piece.Color playerToMove = Piece.Color.WHITE;
 
     public void setActions() {
         for (Piece piece : allPieces) {
@@ -229,6 +235,7 @@ public class Main extends Application {
 
                     piece.pieceObject.setCursor(Cursor.CLOSED_HAND);
                     piece.pieceObject.toFront();
+
 
                     //Find all legal moves for chosen piece
                     legalMoves = piece.findLegalMoves();
@@ -254,87 +261,60 @@ public class Main extends Application {
                     //For SFX control
                     boolean playedSFX = false;
                     boolean playCapture = false;
-                    //Snaps piece to nearest space to cursor
+                    //Finds the nearest space to the cursor
                     piece.findNearestSpace();
-
+                    //Used to save if this is a legal move
                     boolean isLegalMove = false;
 
-/*
-                    for (CoorPair legal : legalMoves) {
-                        System.out.println(legal.toString());
-                    }
-                    System.out.println();
-*/
 
                     //Checks if this move is potentially legal
                     for (CoorPair legal : legalMoves) {
-                        if (piece.getCoordinates().hashCode() == legal.hashCode() & playerToMove == piece.color) {
+                        if (piece.getCoordinates().hashCode() == legal.hashCode() && playerToMove == piece.color) {
                             isLegalMove = true;
                         }
                     }
 
+                    if ( isLegalMove) {
+                        /*
+                        Checks if this move puts player to move's king in check
+                        If this move puts the king in check, then it's illegal
+                        */
 
-                    //Checks if this move puts player to move's king in check
-                    //If this move puts the king in check, then it's illegal
-                    boolean injectedCoordinates = false;
-                    CoorPair kingCoordinates = new CoorPair(-1, -1);
-                    //Gets the coordinates of our king
-                    for (Piece potentialKing : Main.allPieces) {
-                        if (potentialKing.color == piece.color & potentialKing.pieceType == Piece.PieceType.KING) {
-                            kingCoordinates = potentialKing.getCoordinates();
-                            break;
-                        }
-                    }
+                        boolean injectedCoordinates = false;
 
-                    if (piece.pieceType != Piece.PieceType.KING) {
                         //Removes original coordinate of piece, so we can check it's new potential position
                         currentPieceLocations.remove(oldCoors.hashCode());
+
                         //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
                         if (!currentPieceLocations.containsKey(piece.getCoordinates().hashCode())) {
                             injectedCoordinates = true;
-                            currentPieceLocations.put(piece.getCoordinates().hashCode(), piece.color);
+                            currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
                         }
-
-                        for (Piece opponentPiece : Main.allPieces) {
-                            if (opponentPiece.color != piece.color & opponentPiece.pieceType != Piece.PieceType.KING) {
-                                //Checks the moves of all opponent pieces
-                                if (opponentPiece.pieceType != Piece.PieceType.PAWN) {
-                                    for (CoorPair move : opponentPiece.findLegalMoves()) {
-                                        if (kingCoordinates.coorEquals(move)
-                                                & !(piece.getCoordinates().coorEquals(opponentPiece.getCoordinates()))) {
-                                            isLegalMove = false;
-                                        }
-                                    }
-                                } else {
-                                    for (CoorPair move : opponentPiece.movesForCheck()) {
-                                        if (kingCoordinates.coorEquals(move)
-                                                & !(piece.getCoordinates().coorEquals(opponentPiece.getCoordinates()))) {
-                                            isLegalMove = false;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        //Not a legal move if the king of the player who moved is now in check
+                        isLegalMove = !isKingInCheck(getOpponentColor(piece.color));
 
                         //If we injected our new coordinates, we have to remove them again and put back old coordinates
                         if (injectedCoordinates) {
                             Main.currentPieceLocations.remove(piece.getCoordinates().hashCode());
                         }
-                        Main.currentPieceLocations.put(oldCoors.hashCode(), piece.color);
+                        Main.currentPieceLocations.put(oldCoors.hashCode(), piece);
                     }
 
 
-                    //Checks if a piece in the space player is trying to move to
+
+                    //Checks if there's a piece in the space the player is trying to move to
                     //We know that if it's a legal move then we're capturing this piece
                     if (currentPieceLocations.containsKey(piece.getCoordinates().hashCode()) &
                             isLegalMove) {
                         for (Piece capturedPiece : allPieces) {
-                            if (capturedPiece != piece &
-                                    capturedPiece.coorPair.coorEquals(piece.getCoordinates())) {
+                            if (capturedPiece != piece & capturedPiece.coorPair.coorEquals(piece.getCoordinates())) {
                                 playCapture = true;
+                                //Set coordinates off board
                                 capturedPiece.setCoordinates(-1000, -1000);
-                                currentPieceLocations.remove(capturedPiece.getCoordinates().hashCode());
+
+                                //Remove piece from board
                                 allPieces.remove(capturedPiece);
+                                currentPieceLocations.remove(capturedPiece.getCoordinates().hashCode());
                                 break;
                             }
                         }
@@ -344,7 +324,6 @@ public class Main extends Application {
                     if (!isLegalMove) {
                         //Bounces piece back to its original coordinates if it's not a legal move
                         piece.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
-                        playedSFX = true;
 
                     } else {
                         currentPieceLocations.remove(oldCoors.hashCode());
@@ -359,6 +338,7 @@ public class Main extends Application {
                                 }
                             }
                         }
+
                         //If we need to play the capture sound effect
                         if (playCapture) {
                             soundControl.playCapture();
@@ -376,22 +356,28 @@ public class Main extends Application {
                         if (piece instanceof Pawn) {
                             ((Pawn) piece).setFirstMoveFalse();
 
-                            if (piece.color == Piece.Color.BLACK) {
-                                if (piece.getYCoor() == 420) {
-                                    extraPieces.getLast().setCoordinates(piece.getXCoor(), 420);
-                                    piece.setCoordinates(-1000, -1000);
-                                    currentPieceLocations.put(extraPieces.getLast().getCoordinates().hashCode(), Piece.Color.BLACK);
-                                    allPieces.add(extraPieces.removeLast());
-                                    allPieces.remove(piece);
+                            //Checks if a Pawn needs to promote
+                            if (piece.getYCoor() == 0 || piece.getYCoor() == 420) {
+                                //Gets a new queen in the correct color
+                                Piece newQueen = (piece.color == Piece.Color.WHITE) ? extraPieces.getFirst() : extraPieces.getLast();
+                                //Remove queen from extra piece list
+                                extraPieces.remove(newQueen);
+                                //Set Queen to correct coordinates
+                                newQueen.setCoordinates(piece.getXCoor(), piece.getYCoor());
+                                piece.setCoordinates(-1000, -1000);
+                                currentPieceLocations.put(newQueen.getCoordinates().hashCode(), piece);
+                                //Update relevant piece lists
+                                allPieces.add(newQueen);
+                                allPieces.remove(piece);
+                                if ( newQueen.color == Piece.Color.WHITE) {
+                                    whitePieces.remove(piece);
+                                    whitePieces.add(newQueen);
+                                } else {
+                                    blackPieces.remove(piece);
+                                    blackPieces.add(newQueen);
                                 }
-                            } else {
-                                if (piece.getYCoor() == 0) {
-                                    extraPieces.getFirst().setCoordinates(piece.getXCoor(), 0);
-                                    piece.setCoordinates(-1000, -1000);
-                                    currentPieceLocations.put(extraPieces.getFirst().getCoordinates().hashCode(), Piece.Color.WHITE);
-                                    allPieces.add(extraPieces.removeFirst());
-                                    allPieces.remove(piece);
-                                }
+
+
                             }
 
                         } else if (piece instanceof Rook) {
@@ -410,7 +396,7 @@ public class Main extends Application {
                                                             new CoorPair(oldCoors.getxCoor() + 120, oldCoors.getyCoor()))) {
                                                 currentPieceLocations.remove(rook.getCoordinates().hashCode());
                                                 rook.setCoordinates(oldCoors.getxCoor() + 60, oldCoors.getyCoor());
-                                                currentPieceLocations.put(rook.getCoordinates().hashCode(), rook.color);
+                                                currentPieceLocations.put(rook.getCoordinates().hashCode(), rook);
                                                 soundControl.playCastling();
                                                 playedSFX = true;
                                             }
@@ -424,7 +410,7 @@ public class Main extends Application {
                                                             new CoorPair(oldCoors.getxCoor() - 120, oldCoors.getyCoor()))) {
                                                 currentPieceLocations.remove(rook.getCoordinates().hashCode());
                                                 rook.setCoordinates(oldCoors.getxCoor() - 60, oldCoors.getyCoor());
-                                                currentPieceLocations.put(rook.getCoordinates().hashCode(), rook.color);
+                                                currentPieceLocations.put(rook.getCoordinates().hashCode(), rook);
                                                 soundControl.playCastling();
                                                 playedSFX = true;
                                             }
@@ -436,17 +422,25 @@ public class Main extends Application {
                             }
                         }
 
+
                         //If we haven't played a sound effect, we need to play the move sound effect
                         if (!playedSFX) {
                             soundControl.playMove();
                         }
-                        currentPieceLocations.put(piece.getCoordinates().hashCode(), piece.color);
+                        currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
 
                         piece.draw();
                     }
                 }
             });
         }
+    }
+
+    public List<Piece> getOpponentPieces(Piece.Color color) {
+        return (color == Piece.Color.WHITE) ? blackPieces : whitePieces;
+    }
+    public Piece.Color getOpponentColor(Piece.Color color) {
+        return (color == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
     }
 
 }

@@ -14,6 +14,8 @@ public class Pawn extends Piece {
 
     @Override
     public ArrayList<CoorPair> findLegalMoves() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> legalMoves = new ArrayList<>();
 
@@ -23,6 +25,7 @@ public class Pawn extends Piece {
         } else {
             newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
         }
+        //If there isn't a piece in front of us, we can move forwards
         if (!Main.currentPieceLocations.containsKey(newMove.hashCode())) {
             legalMoves.add(new CoorPair(newMove));
         }
@@ -38,29 +41,34 @@ public class Pawn extends Piece {
 
         //Checks if there's a piece to our diagonals
         if (this.color == Color.BLACK) {
+
             //Checks left diagonal (up left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &
-                    Main.currentPieceLocations.get(newMove.hashCode()) == Color.WHITE) {
+            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
+                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.WHITE) {
                 legalMoves.add(new CoorPair(newMove));
             }
+
             //Checks right diagonal (up right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &
-                    Main.currentPieceLocations.get(newMove.hashCode()) == Color.WHITE) {
+            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
+                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.WHITE) {
                 legalMoves.add(new CoorPair(newMove));
             }
+
         } else {
+
             //Checks left diagonal (down left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &
-                    Main.currentPieceLocations.get(newMove.hashCode()) == Color.BLACK) {
+            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
+                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
+
             //Checks right diagonal (down right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &
-                    Main.currentPieceLocations.get(newMove.hashCode()) == Color.BLACK) {
+            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
+                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
         }
@@ -75,6 +83,8 @@ public class Pawn extends Piece {
      */
     @Override
     public ArrayList<CoorPair> movesForCheck() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         ArrayList<CoorPair> movesForCheck = new ArrayList<>();
 
         if (this.color == Color.BLACK) {

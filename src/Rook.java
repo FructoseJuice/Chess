@@ -18,11 +18,15 @@ public class Rook extends Piece {
 
     @Override
     public ArrayList<CoorPair> findLegalMoves() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         return findLegalHorizontalMoves();
     }
 
     @Override
     public ArrayList<CoorPair> movesForCheck() {
+        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+
         return horizontalForCheck();
     }
 }
