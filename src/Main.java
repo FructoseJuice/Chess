@@ -20,20 +20,24 @@ import javafx.stage.Stage;
  */
 
 public class Main extends Application {
-    public Main() throws FileNotFoundException, MalformedURLException {
-    }
+    public Main() throws FileNotFoundException, MalformedURLException {}
 
     //Sets up AnchorPane of piece images
     AnchorPane anchorPane = constructBoard();
+
     //Used for sound effects
     SoundControl soundControl = new SoundControl();
+
     //Used for checking the location and color of all pieces on board
     //Integer represents HashCode for coordinate pair
     public static HashMap<Integer, Piece.Color> currentPieceLocations = new HashMap<>();
+
     //Represents all pieces currently on the board
     public static List<Piece> allPieces = new ArrayList<>();
+
     //All queens that can be used for pawn promotion
     public static LinkedList<Piece> extraPieces = new LinkedList<>();
+
 
     public static void main(String[] args) {
         launch(args);
@@ -58,6 +62,8 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        //For SFX control
         try {
             soundControl.playGameStart();
         } catch (MalformedURLException ignored) {
@@ -75,6 +81,7 @@ public class Main extends Application {
         for (Piece piece : allPieces) {
             spaces.getChildren().add(piece.pieceObject);
         }
+
         //Removes extra pieces from allPieces list
         for (int i = 0; i < allPieces.size(); i++) {
             if (allPieces.get(i).getCoordinates().coorEquals(new CoorPair(-1000, -1000))) {
@@ -92,7 +99,7 @@ public class Main extends Application {
         List<Piece> whitePieces = new ArrayList<>();
         //All black pieces on chessboard
         List<Piece> blackPieces = new ArrayList<>();
-        //Creates new pieces that aren't pawns in both lists
+        //Creates new pieces in order that aren't pawns in both lists
         whitePieces.add(new Rook(Piece.Color.WHITE));
         whitePieces.add(new Knight(Piece.Color.WHITE));
         whitePieces.add(new Bishop(Piece.Color.WHITE));
@@ -113,13 +120,15 @@ public class Main extends Application {
 
 
         //Set coordinates for each piece that's not a pawn
-        for (int yCoor = 0, xCoor = 0; xCoor < blackPieces.size(); xCoor++) {
-            blackPieces.get(xCoor).setCoordinates(xCoor * 60, yCoor);
+        for ( int whiteY = 7, blackY = 0, xCoor = 0;
+                xCoor < 8; xCoor++ ) {
+
+            blackPieces.get(xCoor).setCoordinates(xCoor * 60, blackY);
             currentPieceLocations.put(blackPieces.get(xCoor).getCoordinates().hashCode(), Piece.Color.BLACK);
-        }
-        for (int yCoor = 7, xCoor = 0; xCoor < whitePieces.size(); xCoor++) {
-            whitePieces.get(xCoor).setCoordinates(xCoor * 60, yCoor * 60);
+
+            whitePieces.get(xCoor).setCoordinates(xCoor * 60, whiteY * 60);
             currentPieceLocations.put(whitePieces.get(xCoor).getCoordinates().hashCode(), Piece.Color.WHITE);
+
         }
 
         //Adds all pawns to end of lists
@@ -132,6 +141,7 @@ public class Main extends Application {
         for (int whiteY = 6, blackY = 1, xCoor = 0, i = 8; i < whitePieces.size(); i++) {
             blackPieces.get(i).setCoordinates(xCoor * 60, blackY * 60);
             whitePieces.get(i).setCoordinates(xCoor * 60, whiteY * 60);
+
             currentPieceLocations.put(whitePieces.get(i).getCoordinates().hashCode(), Piece.Color.WHITE);
             currentPieceLocations.put(blackPieces.get(i).getCoordinates().hashCode(), Piece.Color.BLACK);
 
@@ -143,8 +153,12 @@ public class Main extends Application {
             extraPieces.add(new Queen(Piece.Color.WHITE));
             extraPieces.add(new Queen(Piece.Color.BLACK));
         }
+
         allPieces.addAll(extraPieces);
+
+
         for (Piece extra : extraPieces) {
+            //Sets coordinates off board for storage
             extra.setCoordinates(-1000, -1000);
         }
 
@@ -245,12 +259,12 @@ public class Main extends Application {
 
                     boolean isLegalMove = false;
 
-
+/*
                     for (CoorPair legal : legalMoves) {
                         System.out.println(legal.toString());
                     }
                     System.out.println();
-
+*/
 
                     //Checks if this move is potentially legal
                     for (CoorPair legal : legalMoves) {
