@@ -26,11 +26,10 @@ public class Pawn extends Piece {
     }
 
     private void enPassantCheck(CoorPair move, ArrayList<CoorPair> legalMoves) {
-        if ( Main.currentPieceLocations.containsKey(move.hashCode()) ) {
-            if ( Main.currentPieceLocations.get(move.hashCode()) instanceof Pawn
-                    && ((Pawn) Main.currentPieceLocations.get(move.hashCode())).enPassantable ) {
+        if ( Main.currentPieceLocations.containsKey(move.getHash()) ) {
+            if ( Main.currentPieceLocations.get(move.getHash()) instanceof Pawn
+                    && ((Pawn) Main.currentPieceLocations.get(move.getHash())).enPassantable ) {
                 move.setyCoor(move.getyCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
-                System.out.println("MOVE: " + move);
                 legalMoves.add(new CoorPair(move));
             }
         }
@@ -50,7 +49,7 @@ public class Pawn extends Piece {
             newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
         }
         //If there isn't a piece in front of us, we can move forwards
-        if (!Main.currentPieceLocations.containsKey(newMove.hashCode())) {
+        if (!Main.currentPieceLocations.containsKey(newMove.getHash())) {
             legalMoves.add(new CoorPair(newMove));
         }
 
@@ -79,15 +78,15 @@ public class Pawn extends Piece {
 
             //Checks left diagonal (up left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
-                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.WHITE) {
+            if (Main.currentPieceLocations.containsKey(newMove.getHash()) &&
+                    Main.currentPieceLocations.get(newMove.getHash()).color == Color.WHITE) {
                 legalMoves.add(new CoorPair(newMove));
             }
 
             //Checks right diagonal (up right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
-                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.WHITE) {
+            if (Main.currentPieceLocations.containsKey(newMove.getHash()) &&
+                    Main.currentPieceLocations.get(newMove.getHash()).color == Color.WHITE) {
                 legalMoves.add(new CoorPair(newMove));
             }
 
@@ -95,15 +94,15 @@ public class Pawn extends Piece {
 
             //Checks left diagonal (down left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
-                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.BLACK) {
+            if (Main.currentPieceLocations.containsKey(newMove.getHash()) &&
+                    Main.currentPieceLocations.get(newMove.getHash()).color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
 
             //Checks right diagonal (down right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode()) &&
-                    Main.currentPieceLocations.get(newMove.hashCode()).color == Color.BLACK) {
+            if (Main.currentPieceLocations.containsKey(newMove.getHash()) &&
+                    Main.currentPieceLocations.get(newMove.getHash()).color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
         }

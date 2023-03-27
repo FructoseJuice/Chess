@@ -22,7 +22,7 @@ public class King extends Piece {
         //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
         //Puts the king in check
         for (int i = 0; i < legalMoves.size(); i++) {
-            if (opponentMoves.contains(legalMoves.get(i).hashCode())) {
+            if (opponentMoves.contains(legalMoves.get(i).getHash())) {
                 legalMoves.remove(i);
                 --i;
             }
@@ -47,19 +47,19 @@ public class King extends Piece {
             }
 
             if (rightRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).hashCode()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).hashCode()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 60, this.getYCoor()).hashCode()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 120, this.getYCoor()).hashCode())) {
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getHash()) &
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getHash()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getHash()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getHash())) {
                 legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()));
             }
 
             if (leftRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).hashCode()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).hashCode()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 60, this.getYCoor()).hashCode()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 120, this.getYCoor()).hashCode()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 180, this.getYCoor()).hashCode())) {
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getHash()) &
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getHash()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getHash()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getHash()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 180, this.getYCoor()).getHash())) {
                 legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()));
             }
         }
@@ -122,8 +122,8 @@ public class King extends Piece {
 
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode())) {
-                return Main.currentPieceLocations.get(newMove.hashCode()).color == this.color;
+            if (Main.currentPieceLocations.containsKey(newMove.getHash())) {
+                return Main.currentPieceLocations.get(newMove.getHash()).color == this.color;
             } else {
                 return true;
             }
@@ -193,8 +193,8 @@ public class King extends Piece {
      */
     private boolean checkNewMove(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.hashCode())) {
-                return Main.currentPieceLocations.get(newMove.hashCode()).color != this.color;
+            if (Main.currentPieceLocations.containsKey(newMove.getHash())) {
+                return Main.currentPieceLocations.get(newMove.getHash()).color != this.color;
             } else {
                 return true;
             }
@@ -212,7 +212,7 @@ public class King extends Piece {
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
             for (CoorPair potentialMove : piece.movesForCheck()) {
-                hashedCoordinates.add(potentialMove.hashCode());
+                hashedCoordinates.add(potentialMove.getHash());
             }
         }
 
