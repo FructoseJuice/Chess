@@ -3,13 +3,37 @@ import java.util.ArrayList;
 
 public class Pawn extends Piece {
     private boolean firstMove = true;
+    public boolean enPassantable = false;
 
     public Pawn(Color color) throws FileNotFoundException {
         super(PieceType.PAWN, color);
     }
 
     public void setFirstMoveFalse() {
+        if ( firstMove ) {
+            if (this.color == Color.WHITE) {
+                if (this.getYCoor() == 240.0) {
+                    enPassantable = true;
+                }
+            } else {
+                if (this.getYCoor() == 180.0) {
+                    enPassantable = true;
+                }
+            }
+        }
+
         firstMove = false;
+    }
+
+    private void enPassantCheck(CoorPair move, ArrayList<CoorPair> legalMoves) {
+        if ( Main.currentPieceLocations.containsKey(move.hashCode()) ) {
+            if ( Main.currentPieceLocations.get(move.hashCode()) instanceof Pawn
+                    && ((Pawn) Main.currentPieceLocations.get(move.hashCode())).enPassantable ) {
+                move.setyCoor(move.getyCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
+                System.out.println("MOVE: " + move);
+                legalMoves.add(new CoorPair(move));
+            }
+        }
     }
 
     @Override
@@ -37,6 +61,17 @@ public class Pawn extends Piece {
             } else {
                 legalMoves.add(new CoorPair(this.getXCoor(), this.getYCoor() - 120));
             }
+        }
+
+        //Check if we can en-passant
+        if (    ( this.color == Color.WHITE && this.getYCoor() == 180.0 )
+             || ( this.color == Color.BLACK && this.getYCoor() == 240.0 ) ) {
+
+                newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor());
+                enPassantCheck(newMove, legalMoves);
+
+                newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor());
+                enPassantCheck(newMove, legalMoves);
         }
 
         //Checks if there's a piece to our diagonals

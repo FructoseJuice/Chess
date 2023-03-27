@@ -38,12 +38,12 @@ public abstract class Piece {
         }
 
         switch (pieceType) {
-            case PAWN: imagePath += "Pawn.png"; break;
-            case BISHOP: imagePath += "Bishop.png"; break;
-            case KNIGHT: imagePath += "Knight.png"; break;
-            case ROOK: imagePath += "Rook.png"; break;
-            case QUEEN: imagePath += "Queen.png"; break;
-            case KING: imagePath += "King.png"; break;
+            case PAWN -> imagePath += "Pawn.png";
+            case BISHOP -> imagePath += "Bishop.png";
+            case KNIGHT -> imagePath += "Knight.png";
+            case ROOK -> imagePath += "Rook.png";
+            case QUEEN -> imagePath += "Queen.png";
+            case KING -> imagePath += "King.png";
         }
 
         Image piece = new Image(new FileInputStream(imagePath));
@@ -97,7 +97,7 @@ public abstract class Piece {
     }
 
     /**
-     * Finds the nearest space in order to snap piece to grid
+     * Finds the nearest space for snapping piece to grid
      */
     public void findNearestSpace() {
         int[] possibleSpaceCoors = new int[]{0, 60, 120, 180, 240, 300, 360, 420};
