@@ -53,9 +53,9 @@ public abstract class Piece {
 
     /**
      * Required for all piece classes to override this method
-     * Finds the legal moves that this piece can take
+     * Finds the potential moves that this piece can take
      */
-    public abstract ArrayList<CoorPair> findLegalMoves();
+    public abstract ArrayList<CoorPair> findPotentialMoves();
 
     /**
      * Required for all piece classes to override this method
@@ -128,12 +128,12 @@ public abstract class Piece {
     }
 
     /**
-     * Finds all of a pieces legal moves in all diagonal directions
+     * Finds all of a pieces potential moves in all diagonal directions
      * FOR USE BY BISHOPS AND QUEENS
      *
-     * @return list of legal moves in diagonal directions
+     * @return list of potential moves in diagonal directions
      */
-    public ArrayList<CoorPair> findLegalDiagonalMoves() {
+    public ArrayList<CoorPair> findPotentialDiagonalMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> legalMoves = new ArrayList<>();
 
@@ -225,12 +225,12 @@ public abstract class Piece {
     }
 
     /**
-     * Finds all of a pieces legal moves in all horizontal directions
+     * Finds all of a pieces potential moves in all horizontal directions
      * FOR USE BY ROOKS AND QUEENS
      *
-     * @return list of legal moves in horizontal directions
+     * @return list of potential moves in horizontal directions
      */
-    public ArrayList<CoorPair> findLegalHorizontalMoves() {
+    public ArrayList<CoorPair> findPotentialHorizontalMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> legalMoves = new ArrayList<>();
 

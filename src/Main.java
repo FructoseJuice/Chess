@@ -13,13 +13,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-/**
- * //TODO: IMPLEMENT EN-PASSENT (BOOLEAN EN-PASSENTABLE IN PAWN CLASS)
- */
-
 public class Main extends Application {
     public Main() throws FileNotFoundException, MalformedURLException {}
 
+    /*
+    GLOBAL VARIABLES
+     */
     //Sets up AnchorPane of piece images
     AnchorPane anchorPane = constructBoard();
 
@@ -39,7 +38,7 @@ public class Main extends Application {
     public static LinkedList<Piece> extraPieces = new LinkedList<>();
     //Logs the current player to move
     Piece.Color playerToMove = Piece.Color.WHITE;
-    //If game is in status checkmate
+    //If game is in checkmate status
     Boolean checkmate = false;
 
 
@@ -97,7 +96,9 @@ public class Main extends Application {
         return spaces;
     }
 
-    //Creates all the pieces on the chessboard
+    /**
+     * Creates all the pieces on the chessboard
+     */
     public void constructPieces() throws FileNotFoundException {
         //Creates new pieces in order that aren't pawns in both lists
         whitePieces.add(new Rook(Piece.Color.WHITE));
@@ -199,7 +200,7 @@ public class Main extends Application {
                     if (legalMove.hashCode() == kingCoordinates.hashCode()) return true;
                 }
             } else {
-                for (CoorPair legalMove : piece.findLegalMoves()) {
+                for (CoorPair legalMove : piece.findPotentialMoves()) {
                     if (legalMove.hashCode() == kingCoordinates.hashCode()) return true;
                 }
             }
@@ -211,9 +212,150 @@ public class Main extends Application {
 
     //Logs a pieces old coordinates before being moved
     CoorPair oldCoors;
-    ArrayList<CoorPair> legalMoves = new ArrayList<>();
+    //Logs the legal moves a piece
+    ArrayList<CoorPair> potentialMoves = new ArrayList<>();
+
+    /**
+     * Takes a players color and returns the opponents color.
+     * @param color color of the player in question
+     * @return oponents color
+     */
+    public Piece.Color getOpponentColor(Piece.Color color) {
+        return (color == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
+    }
+
+    /**
+     * Takes a pieces coordinates, checks if this move
+     * puts the players king into check, or takes the players king out of check.
+     * Also checks for en-passant.
+     *
+     * @param piece piece that is being moved
+     * @return if the move being made is legal
+     */
+    public boolean isPotentialMoveLegal(Piece piece) {
+        //Used to save if this is a legal move
+        boolean isLegalMove = false;
+
+
+        /*
+        Check if this move is potentially legal
+         */
+        for (CoorPair potential : potentialMoves) {
+            if (piece.getCoordinates().hashCode() == potential.hashCode() && playerToMove == piece.color) {
+                isLegalMove = true;
+            }
+        }
+
+        if (isLegalMove) {
+            /*
+            Checks if this move puts player to move's king in check
+            If this move puts their king in check, then it's illegal
+            */
+
+            boolean injectedCoordinates = false;
+
+            //Removes original coordinate of piece, so we can check it's new potential position
+            currentPieceLocations.remove(oldCoors.hashCode());
+
+
+            //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
+            if (!currentPieceLocations.containsKey(piece.getCoordinates().hashCode())) {
+                injectedCoordinates = true;
+                currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
+                //Not a legal move is king is now in check
+                isLegalMove = !isKingInCheck(getOpponentColor(piece.color));
+            }
+
+            //If we injected our new coordinates, we have to remove them again and put back old coordinates
+            if (injectedCoordinates) {
+                Main.currentPieceLocations.remove(piece.getCoordinates().hashCode());
+            }
+            Main.currentPieceLocations.put(oldCoors.hashCode(), piece);
+        }
+
+
+
+        /*
+        Checks if there's a piece in the space the player is trying to move to
+        */
+        if (currentPieceLocations.containsKey(piece.getCoordinates().hashCode()) &
+                isLegalMove) {
+            //if there's a piece there of a different color
+            if (currentPieceLocations.get(piece.getCoordinates().hashCode()).color != piece.color) {
+                //Save the piece we're capturing
+                Piece capturedPiece = currentPieceLocations.get(piece.getCoordinates().hashCode());
+
+                //Saves the "captured" pieces coordinates
+                CoorPair capturedOldCoors = capturedPiece.getCoordinates();
+
+                //Change coordinates of this piece to prevent move calculation for it
+                capturedPiece.setCoordinates(-1000, -1000);
+
+                //Temporarily change this pieces coordinates
+                currentPieceLocations.remove(oldCoors.hashCode());
+                currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
+
+                //Check if king is still in check
+                isLegalMove = !isKingInCheck(getOpponentColor(piece.color));
+
+                //Give pieces its coordinates back and restore pieces map
+                capturedPiece.setCoordinates(capturedOldCoors.getxCoor(), capturedOldCoors.getyCoor());
+                currentPieceLocations.put(oldCoors.hashCode(), piece);
+                currentPieceLocations.put(capturedOldCoors.hashCode(), capturedPiece);
+
+                //If this is a legal move we're capturing a piece
+                if (isLegalMove) {
+                    //Set coordinates off board
+                    capturedPiece.setCoordinates(-1000, -1000);
+
+                    //Remove piece from board
+                    allPieces.remove(capturedPiece);
+                    currentPieceLocations.remove(capturedPiece.getCoordinates().hashCode());
+                }
+            }
+        }
+
+        /*
+        Check for en-passant if pawn
+         */
+        if (piece instanceof Pawn) {
+            if (piece.color == Piece.Color.WHITE && piece.getYCoor() == 120.0
+                    || piece.color == Piece.Color.BLACK && piece.getYCoor() == 240.0) {
+                //Save potential captured piece
+                CoorPair tempCoor = new CoorPair(piece.getCoordinates());
+                Piece tempPiece;
+
+                //Increment up/down space based on color
+                tempCoor.setyCoor(tempCoor.getyCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
+
+                //Check for piece in this space
+
+                if (currentPieceLocations.containsKey(tempCoor.hashCode())) {
+                    tempPiece = currentPieceLocations.get(tempCoor.hashCode());
+
+                    //Check if pawn
+                    if (tempPiece instanceof Pawn) {
+
+                        //Only pawns of opposite color will be en-passantable here
+                        if (((Pawn) tempPiece).enPassantable) {
+
+                            //Remove captured piece
+                            tempPiece.setCoordinates(-1000, -1000);
+                            allPieces.remove(tempPiece);
+                            currentPieceLocations.remove(tempCoor.hashCode());
+
+                            isLegalMove = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return isLegalMove;
+    }
 
     public void setActions() {
+        //Set actions for all pieces
         for (Piece piece : allPieces) {
             piece.pieceObject.setOnMouseEntered(event -> piece.pieceObject.setCursor(Cursor.OPEN_HAND));
 
@@ -228,7 +370,7 @@ public class Main extends Application {
 
 
                 //Find all legal moves for chosen piece
-                legalMoves = piece.findLegalMoves();
+                potentialMoves = piece.findPotentialMoves();
 
             });
 
@@ -385,9 +527,9 @@ public class Main extends Application {
                         //Check if opponent can make any legal moves
                         for ( Piece piece1 : (piece.color == Piece.Color.WHITE) ? blackPieces : whitePieces ) {
                             if ( !checkmate ) break;
-                            legalMoves = piece1.findLegalMoves();
+                            potentialMoves = piece1.findPotentialMoves();
                             oldCoors = piece1.getCoordinates();
-                            for ( CoorPair move : legalMoves ) {
+                            for ( CoorPair move : potentialMoves) {
                                 piece1.setCoordinates(move.getxCoor(), move.getyCoor());
                                 //Check move
                                 if (isPotentialMoveLegal(piece1)) {
@@ -403,129 +545,4 @@ public class Main extends Application {
             });
         }
     }
-
-
-    public boolean isPotentialMoveLegal(Piece piece) {
-        //Used to save if this is a legal move
-        boolean isLegalMove = false;
-
-
-        //Checks if this move is potentially legal
-        for (CoorPair legal : legalMoves) {
-            if (piece.getCoordinates().hashCode() == legal.hashCode() && playerToMove == piece.color) {
-                isLegalMove = true;
-            }
-        }
-
-        if ( isLegalMove) {
-                        /*
-                        Checks if this move puts player to move's king in check
-                        If this move puts the king in check, then it's illegal
-                        */
-
-            boolean injectedCoordinates = false;
-
-            //Removes original coordinate of piece, so we can check it's new potential position
-            currentPieceLocations.remove(oldCoors.hashCode());
-
-
-            //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
-            if (!currentPieceLocations.containsKey(piece.getCoordinates().hashCode())) {
-                injectedCoordinates = true;
-                currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
-                //Not a legal move is king is now in check
-                isLegalMove = !isKingInCheck(getOpponentColor(piece.color));
-            }
-
-            //If we injected our new coordinates, we have to remove them again and put back old coordinates
-            if (injectedCoordinates) {
-                Main.currentPieceLocations.remove(piece.getCoordinates().hashCode());
-            }
-            Main.currentPieceLocations.put(oldCoors.hashCode(), piece);
-        }
-
-
-
-        /*
-        Checks if there's a piece in the space the player is trying to move to
-        */
-        if (currentPieceLocations.containsKey(piece.getCoordinates().hashCode()) &
-                isLegalMove) {
-            //if there's a piece there of a different color
-            if ( currentPieceLocations.get(piece.getCoordinates().hashCode()).color != piece.color) {
-                //Save the piece we're capturing
-                Piece capturedPiece = currentPieceLocations.get(piece.getCoordinates().hashCode());
-
-                //Saves the "captured" pieces coordinates
-                CoorPair capturedOldCoors = capturedPiece.getCoordinates();
-
-                //Change coordinates of this piece to prevent move calculation for it
-                capturedPiece.setCoordinates(-1000, -1000);
-
-                //Temporarily change this pieces coordinates
-                currentPieceLocations.remove(oldCoors.hashCode());
-                currentPieceLocations.put(piece.getCoordinates().hashCode(), piece);
-
-                //Check if king is still in check
-                isLegalMove = !isKingInCheck(getOpponentColor(piece.color));
-
-                //Give pieces its coordinates back and restore pieces map
-                capturedPiece.setCoordinates(capturedOldCoors.getxCoor(), capturedOldCoors.getyCoor());
-                currentPieceLocations.put(oldCoors.hashCode(), piece);
-                currentPieceLocations.put(capturedOldCoors.hashCode(), capturedPiece);
-
-                //If this is a legal move we're capturing a piece
-                if ( isLegalMove) {
-                    //Set coordinates off board
-                    capturedPiece.setCoordinates(-1000, -1000);
-
-                    //Remove piece from board
-                    allPieces.remove(capturedPiece);
-                    currentPieceLocations.remove(capturedPiece.getCoordinates().hashCode());
-                }
-            }
-        }
-
-        //Check for en-passant if pawn
-        if ( piece instanceof Pawn ) {
-            //Save potential captured piece
-            System.out.println(piece.getCoordinates());
-            CoorPair tempCoor = new CoorPair(piece.getCoordinates());
-            Piece tempPiece;
-
-            if ( piece.color == Piece.Color.WHITE && piece.getYCoor() == 120.0
-              || piece.color == Piece.Color.BLACK && piece.getYCoor() == 240.0) {
-
-                //Increment up/down space based on color
-                tempCoor.setyCoor(tempCoor.getyCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
-
-                //Check for piece in this space
-
-                if ( currentPieceLocations.containsKey(tempCoor.hashCode()) ) {
-                    tempPiece = currentPieceLocations.get(tempCoor.hashCode());
-
-                    //Check if pawn
-                    if ( tempPiece instanceof Pawn ) {
-
-                        //Only pawns of opposite color will be en-passantable here
-                        if ( ((Pawn) tempPiece).enPassantable ) {
-
-                            //Remove captured piece
-                            tempPiece.setCoordinates(-1000, -1000);
-                            allPieces.remove(tempPiece);
-                            currentPieceLocations.remove(tempCoor.hashCode());
-
-                            isLegalMove = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return isLegalMove;
-    }
-    public Piece.Color getOpponentColor(Piece.Color color) {
-        return (color == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
-    }
-
 }

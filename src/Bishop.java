@@ -7,8 +7,8 @@ public class Bishop extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findLegalMoves() {
-        return findLegalDiagonalMoves();
+    public ArrayList<CoorPair> findPotentialMoves() {
+        return findPotentialDiagonalMoves();
     }
 
     @Override

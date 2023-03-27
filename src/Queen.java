@@ -7,11 +7,11 @@ public class Queen extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findLegalMoves() {
+    public ArrayList<CoorPair> findPotentialMoves() {
         if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
         ArrayList<CoorPair> legalMoves = new ArrayList<>();
-        legalMoves.addAll(findLegalDiagonalMoves());
-        legalMoves.addAll(findLegalHorizontalMoves());
+        legalMoves.addAll(findPotentialDiagonalMoves());
+        legalMoves.addAll(findPotentialHorizontalMoves());
         return legalMoves;
     }
 

@@ -14,7 +14,7 @@ public class King extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findLegalMoves() {
+    public ArrayList<CoorPair> findPotentialMoves() {
         //Gets the potential legal moves this king can make
         ArrayList<CoorPair> legalMoves = getPotentialMoves();
         //Gets all possible moves of the opponent

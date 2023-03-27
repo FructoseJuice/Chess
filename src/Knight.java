@@ -7,7 +7,7 @@ public class Knight extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findLegalMoves() {
+    public ArrayList<CoorPair> findPotentialMoves() {
         if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
 
         CoorPair newMove = new CoorPair(-1, -1);
