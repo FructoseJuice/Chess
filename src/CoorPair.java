@@ -1,34 +1,34 @@
 public class CoorPair {
     private double xCoor;
     private double yCoor;
-    private int hash;
+    private int token;
 
     public CoorPair(double xCoor, double yCoor) {
         this.xCoor = xCoor;
         this.yCoor = yCoor;
-        hash = hashCode();
+        token = hashCode();
     }
 
     public CoorPair(CoorPair coorPair) {
         this.xCoor = coorPair.getxCoor();
         this.yCoor = coorPair.getyCoor();
-        hash = hashCode();
+        token = hashCode();
     }
 
     public void setCoordinates(double xCoor, double yCoor) {
         this.xCoor = xCoor;
         this.yCoor = yCoor;
-        hash = hashCode();
+        token = hashCode();
     }
 
     public void setxCoor(double xCoor) {
         this.xCoor = xCoor;
-        hash = hashCode();
+        token = hashCode();
     }
 
     public void setyCoor(double yCoor) {
         this.yCoor = yCoor;
-        hash = hashCode();
+        token = hashCode();
     }
 
     public double getxCoor() {
@@ -39,12 +39,12 @@ public class CoorPair {
         return yCoor;
     }
 
-    public int getHash() {
-        return hash;
+    public int getToken() {
+        return token;
     }
 
     public boolean coorEquals(CoorPair pairToCheck) {
-        return ( this.hash == pairToCheck.getHash() );
+        return ( this.token == pairToCheck.getToken() );
     }
 
     /**

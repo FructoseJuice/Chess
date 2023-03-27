@@ -22,14 +22,15 @@ public class King extends Piece {
         //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
         //Puts the king in check
         for (int i = 0; i < legalMoves.size(); i++) {
-            if (opponentMoves.contains(legalMoves.get(i).getHash())) {
+            if (opponentMoves.contains(legalMoves.get(i).getToken())) {
                 legalMoves.remove(i);
                 --i;
             }
         }
 
         //Checks if a king can castle
-        if (firstMove) {
+        //Can only castle if it's our first move, and we're not in check
+        if (firstMove && !Main.isKingInCheck(this.color)) {
             boolean rightRookCanCastle = false;
             boolean leftRookCanCastle = false;
             for (Piece piece : (this.color == Color.WHITE) ? Main.whitePieces : Main.blackPieces) {
@@ -46,20 +47,24 @@ public class King extends Piece {
                 }
             }
 
+            /*
+            Only add castle as legal if the rook hasn't moved, and
+            we're not castling THROUGH, or INTO check.
+             */
             if (rightRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getHash()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getHash()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getHash()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getHash())) {
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) &
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken())) {
                 legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()));
             }
 
             if (leftRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getHash()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getHash()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getHash()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getHash()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 180, this.getYCoor()).getHash())) {
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) &
+                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) &
+                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken())) {
                 legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()));
             }
         }
@@ -69,10 +74,6 @@ public class King extends Piece {
 
     @Override
     public ArrayList<CoorPair> movesForCheck() {
-        return getPotentialMovesForCheck();
-    }
-
-    public ArrayList<CoorPair> getPotentialMovesForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<CoorPair> potentialMoves = new ArrayList<>();
 
@@ -122,8 +123,8 @@ public class King extends Piece {
 
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.getHash())) {
-                return Main.currentPieceLocations.get(newMove.getHash()).color == this.color;
+            if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
+                return Main.currentPieceLocations.get(newMove.getToken()).color == this.color;
             } else {
                 return true;
             }
@@ -193,8 +194,8 @@ public class King extends Piece {
      */
     private boolean checkNewMove(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.getHash())) {
-                return Main.currentPieceLocations.get(newMove.getHash()).color != this.color;
+            if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
+                return Main.currentPieceLocations.get(newMove.getToken()).color != this.color;
             } else {
                 return true;
             }
@@ -212,7 +213,7 @@ public class King extends Piece {
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
             for (CoorPair potentialMove : piece.movesForCheck()) {
-                hashedCoordinates.add(potentialMove.getHash());
+                hashedCoordinates.add(potentialMove.getToken());
             }
         }
 
