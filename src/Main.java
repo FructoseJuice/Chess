@@ -26,7 +26,7 @@ public class Main extends Application {
     SoundControl soundControl = new SoundControl();
 
     //Used for checking the location and color of all pieces on board
-    //Integer represents HashCode for coordinate pair
+    //Integer represents token of coordinate pair
     public static HashMap<Integer, Piece> currentPieceLocations = new HashMap<>();
 
     //Represents all pieces currently on the board
@@ -98,7 +98,7 @@ public class Main extends Application {
      * Creates all the pieces on the chessboard
      */
     public void constructPieces() throws FileNotFoundException {
-        //Creates new pieces that aren't pawns in order in both lists
+        //Create new pieces that aren't pawns in order for both lists
         whitePieces.add(new Rook(Piece.Color.WHITE));
         whitePieces.add(new Knight(Piece.Color.WHITE));
         whitePieces.add(new Bishop(Piece.Color.WHITE));

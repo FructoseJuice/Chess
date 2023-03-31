@@ -71,4 +71,8 @@ public class CoorPair {
         }
     }
 
+    public CoorPair reverseHash() {
+        return null;
+    }
+
 }
