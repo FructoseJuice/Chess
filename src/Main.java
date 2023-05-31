@@ -19,6 +19,7 @@ public class Main extends Application {
     /*
     GLOBAL VARIABLES
      */
+
     //Sets up AnchorPane of piece images
     AnchorPane anchorPane = constructBoard();
 
@@ -51,7 +52,6 @@ public class Main extends Application {
         //Sets up the background chess board
         Image board = new Image(new FileInputStream("images\\Chess_Board.png"));
         ImageView boardView = new ImageView(board);
-        boardView.setFitHeight(480);
         boardView.setFitHeight(480);
 
         //Adds background and pieces to board

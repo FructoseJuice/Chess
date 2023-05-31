@@ -103,31 +103,27 @@ public abstract class Piece {
      * Finds the nearest space for snapping piece to grid
      */
     public void findNearestSpace() {
-        int[] possibleSpaceCoors = new int[]{0, 60, 120, 180, 240, 300, 360, 420};
-        int difference;
-        int closestIndex = 0;
+        int quotient;
+
         //Finding closest x coordinate
-        difference = (int) coorPair.getxCoor();
-        for (int i = 1; i < possibleSpaceCoors.length; i++) {
-            int checkDifference = (int) Math.abs(possibleSpaceCoors[i] - coorPair.getxCoor());
-            if (checkDifference < difference) {
-                closestIndex = i;
-                difference = checkDifference;
-            }
-        }
-        coorPair.setxCoor(possibleSpaceCoors[closestIndex] * 1.0);
+        int xCoor = (int) coorPair.getxCoor();
+
+        quotient = Math.floorDiv(xCoor, 60);
+        //Find remainder and determine closest square
+        if ( xCoor % 60 >= 30 ) quotient++;
+
+        coorPair.setxCoor(quotient * 60.0);
+
 
         //Finding closest y coordinate
-        closestIndex = 0;
-        difference = (int) coorPair.getyCoor();
-        for (int i = 1; i < possibleSpaceCoors.length; i++) {
-            int checkDifference = (int) Math.abs(possibleSpaceCoors[i] - coorPair.getyCoor());
-            if (checkDifference < difference) {
-                closestIndex = i;
-                difference = checkDifference;
-            }
-        }
-        coorPair.setyCoor(possibleSpaceCoors[closestIndex] * 1.0);
+        int yCoor = (int) coorPair.getyCoor();
+
+
+        quotient = Math.floorDiv(yCoor, 60);
+
+        if ( yCoor % 60 >= 30 ) quotient++;
+
+        coorPair.setyCoor(quotient * 60.0);
     }
 
 
