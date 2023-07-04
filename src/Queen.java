@@ -7,11 +7,11 @@ public class Queen extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findPotentialMoves() {
+    public ArrayList<Integer> findPotentialMoves() {
         //Make sure we're in bounds of board before calculations
         if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
 
-        ArrayList<CoorPair> legalMoves = new ArrayList<>();
+        ArrayList<Integer> legalMoves = new ArrayList<>();
 
         //Find all diagonal and horizontal moves
         legalMoves.addAll(findPotentialDiagonalMoves());
@@ -21,11 +21,11 @@ public class Queen extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> movesForCheck() {
+    public ArrayList<Integer> movesForCheck() {
         //Make sure we're in bounds of board before calculations
         if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
 
-        ArrayList<CoorPair> potentialMoves = new ArrayList<>();
+        ArrayList<Integer> potentialMoves = new ArrayList<>();
 
         //Find all diagonal and horizontal moves, including moves protecting pieces
         potentialMoves.addAll(diagonalForCheck());

@@ -174,20 +174,20 @@ public class Main extends Application {
      * @return If king is in check
      */
     public static boolean isKingInCheck(Piece.Color color) {
-        CoorPair kingCoordinates = null;
+        Integer kingCoordinates = null;
 
         //Grab this king's Coordinates
         if ( color == Piece.Color.WHITE ) {
             //Find king
             for ( Piece piece : whitePieces ) {
                 if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates();
+                    kingCoordinates = piece.getCoordinates().getToken();
                 }
             }
         } else {
             for ( Piece piece : blackPieces ) {
                 if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates();
+                    kingCoordinates = piece.getCoordinates().getToken();
                 }
             }
         }
@@ -199,12 +199,12 @@ public class Main extends Application {
         for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
             if (piece.pieceType == Piece.PieceType.PAWN || piece.pieceType == Piece.PieceType.KING) {
                 //If piece is a pawn or king we need special logic
-                for ( CoorPair legalMove : piece.movesForCheck() ) {
-                    if ( legalMove.coorEquals(kingCoordinates) ) return true;
+                for ( Integer legalMove : piece.movesForCheck() ) {
+                    if (Objects.equals(legalMove, kingCoordinates)) return true;
                 }
             } else {
-                for ( CoorPair legalMove : piece.findPotentialMoves() ) {
-                    if ( legalMove.coorEquals(kingCoordinates) ) return true;
+                for ( Integer legalMove : piece.findPotentialMoves() ) {
+                    if (Objects.equals(legalMove, kingCoordinates)) return true;
                 }
             }
         }
@@ -216,7 +216,7 @@ public class Main extends Application {
     //Logs a pieces old coordinates before being moved
     CoorPair oldCoors;
     //Logs the legal moves a piece
-    ArrayList<CoorPair> potentialMoves = new ArrayList<>();
+    ArrayList<Integer> potentialMoves = new ArrayList<>();
 
     /**
      * Takes a players color and returns the opponents color.
@@ -243,11 +243,11 @@ public class Main extends Application {
          */
 
         //Check if it's this player's turn
-        //if (playerToMove != piece.color) return false;
+        if (playerToMove != piece.color) return false;
 
         //Check if desired move is potentially legal
-        for (CoorPair potential : potentialMoves) {
-            if (piece.getCoordinates().coorEquals(potential)) {
+        for (Integer potential : potentialMoves) {
+            if (piece.getCoordinates().getToken() == potential) {
                 isLegalMove = true;
                 break;
             }
@@ -321,6 +321,12 @@ public class Main extends Application {
         return isLegalMove;
     }
 
+    /**
+     * Check if we are capturing a piece
+     * If this move is legal and capturing a piece, remove the opponent piece from the board
+     * @param piece Piece to move
+     * @return If the piece captured an enemy piece or not
+     */
     public boolean checkForCapture(Piece piece) {
         boolean isLegalMove = true;
         /*
@@ -367,6 +373,10 @@ public class Main extends Application {
 
         return isLegalMove;
     }
+
+    /**
+     * Set user input actions for each piece
+     */
     public void setActions() {
         //Set actions for all pieces
         for (Piece piece : allPieces) {
@@ -584,8 +594,8 @@ public class Main extends Application {
                             potentialMoves = pieceToCheck.findPotentialMoves();
 
                             oldCoors = pieceToCheck.getCoordinates();
-                            for ( CoorPair move : potentialMoves) {
-                                pieceToCheck.setCoordinates(move.getxCoor(), move.getyCoor());
+                            for ( Integer move : potentialMoves) {
+                                pieceToCheck.setCoordinates(move);
                                 //Check move
                                 if (isPotentialMoveLegal(pieceToCheck)) {
                                     //Found legal move means no checkmate

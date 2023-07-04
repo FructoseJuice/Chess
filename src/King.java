@@ -14,15 +14,15 @@ public class King extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findPotentialMoves() {
+    public ArrayList<Integer> findPotentialMoves() {
         //Gets the potential legal moves this king can make
-        ArrayList<CoorPair> legalMoves = getPotentialMoves();
+        ArrayList<Integer> legalMoves = getPotentialMoves();
         //Gets all possible moves of the opponent
         HashSet<Integer> opponentMoves = spacesOpponentCanMove();
         //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
         //Puts the king in check
         for (int i = 0; i < legalMoves.size(); i++) {
-            if (opponentMoves.contains(legalMoves.get(i).getToken())) {
+            if (opponentMoves.contains(legalMoves.get(i))) {
                 legalMoves.remove(i);
                 --i;
             }
@@ -56,7 +56,7 @@ public class King extends Piece {
                     !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()] == null) {
-                legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()));
+                legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken());
             }
 
             if (leftRookCanCastle &
@@ -65,7 +65,7 @@ public class King extends Piece {
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken()] == null) {
-                legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()));
+                legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken());
             }
         }
 
@@ -73,49 +73,49 @@ public class King extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> movesForCheck() {
+    public ArrayList<Integer> movesForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> potentialMoves = new ArrayList<>();
+        ArrayList<Integer> potentialMoves = new ArrayList<>();
 
         //Check moving up
         newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor());
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down
         newMove.setCoordinates(this.getXCoor(), this.getYCoor() + 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor());
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move up right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move up left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
         if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
 
         return potentialMoves;
@@ -138,49 +138,49 @@ public class King extends Piece {
      *
      * @return List of potential moves
      */
-    public ArrayList<CoorPair> getPotentialMoves() {
+    public ArrayList<Integer> getPotentialMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> potentialMoves = new ArrayList<>();
+        ArrayList<Integer> potentialMoves = new ArrayList<>();
 
         //Check moving up
         newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor());
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down
         newMove.setCoordinates(this.getXCoor(), this.getYCoor() + 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor());
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move up right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move up left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down left
         newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
         //Check move down right
         newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
         if (checkNewMove(newMove)) {
-            potentialMoves.add(new CoorPair(newMove));
+            potentialMoves.add(newMove.getToken());
         }
 
         return potentialMoves;
@@ -212,9 +212,7 @@ public class King extends Piece {
         HashSet<Integer> hashedCoordinates = new HashSet<>();
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
-            for (CoorPair potentialMove : piece.movesForCheck()) {
-                hashedCoordinates.add(potentialMove.getToken());
-            }
+            hashedCoordinates.addAll(piece.movesForCheck());
         }
 
         return hashedCoordinates;

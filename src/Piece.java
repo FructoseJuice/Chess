@@ -55,14 +55,14 @@ public abstract class Piece {
      * Required for all piece classes to override this method
      * Finds the potential moves that this piece can take
      */
-    public abstract ArrayList<CoorPair> findPotentialMoves();
+    public abstract ArrayList<Integer> findPotentialMoves();
 
     /**
      * Required for all piece classes to override this method
      * Finds the potential moves that this piece can take to put a king in check
      * Includes protecting own pieces.
      */
-    public abstract ArrayList<CoorPair> movesForCheck();
+    public abstract ArrayList<Integer> movesForCheck();
 
     public void setCoordinates(double xCoor, double yCoor) {
         //Set new coordinates
@@ -74,6 +74,10 @@ public abstract class Piece {
 
     public void setCoordinates(CoorPair newCoors) {
         coorPair = new CoorPair(newCoors.getxCoor(), newCoors.getyCoor());
+    }
+
+    public void setCoordinates(Integer coordinateToken) {
+        coorPair = CoorPair.reverseHash(coordinateToken);
     }
 
     //Returns in format:
@@ -142,11 +146,11 @@ public abstract class Piece {
      * Finds all of a pieces potential moves in all diagonal directions
      * FOR USE BY BISHOPS AND QUEENS
      *
-     * @return list of potential moves in diagonal directions
+     * @return list of hashed potential moves in diagonal directions
      */
-    public ArrayList<CoorPair> findPotentialDiagonalMoves() {
+    public ArrayList<Integer> findPotentialDiagonalMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> legalMoves = new ArrayList<>();
+        ArrayList<Integer> legalMoves = new ArrayList<>();
 
         boolean canMoveUpRight = true;
         boolean canMoveUpLeft = true;
@@ -162,11 +166,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveUpRight = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveUpRight = false;
@@ -181,11 +185,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveUpLeft = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveUpLeft = false;
@@ -200,11 +204,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveDownLeft = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveDownLeft = false;
@@ -219,11 +223,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveDownRight = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveDownRight = false;
@@ -239,11 +243,11 @@ public abstract class Piece {
      * Finds all of a pieces potential moves in all horizontal directions
      * FOR USE BY ROOKS AND QUEENS
      *
-     * @return list of potential moves in horizontal directions
+     * @return list of hashed potential moves in horizontal directions
      */
-    public ArrayList<CoorPair> findPotentialHorizontalMoves() {
+    public ArrayList<Integer> findPotentialHorizontalMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> legalMoves = new ArrayList<>();
+        ArrayList<Integer> legalMoves = new ArrayList<>();
 
         boolean canMoveRight = true;
         boolean canMoveLeft = true;
@@ -259,11 +263,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveRight = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveRight = false;
@@ -277,11 +281,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveLeft = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveLeft = false;
@@ -295,11 +299,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveUp = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveUp = false;
@@ -313,11 +317,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(new CoorPair(newMove));
+                            legalMoves.add(newMove.getToken());
                         }
                         canMoveDown = false;
                     } else {
-                        legalMoves.add(new CoorPair(newMove));
+                        legalMoves.add(newMove.getToken());
                     }
                 } else {
                     canMoveDown = false;
@@ -332,11 +336,11 @@ public abstract class Piece {
      * Used for finding all potential moves for horizontal moving pieces
      * This includes pieces it's protecting
      *
-     * @return Potential moves of piece for calculating check
+     * @return Hashed potential moves of piece for calculating check
      */
-    public ArrayList<CoorPair> horizontalForCheck() {
+    public ArrayList<Integer> horizontalForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> movesForCheck = new ArrayList<>();
+        ArrayList<Integer> movesForCheck = new ArrayList<>();
 
         boolean canMoveRight = true;
         boolean canMoveLeft = true;
@@ -352,13 +356,13 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
 
                         }
                         canMoveRight = ifPieceKing(newMove);
 
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveRight = false;
@@ -372,11 +376,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveLeft = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveLeft = false;
@@ -390,11 +394,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveUp = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveUp = false;
@@ -408,11 +412,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveDown = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveDown = false;
@@ -427,11 +431,11 @@ public abstract class Piece {
      * Used for finding all potential moves for diagonal moving pieces
      * This includes pieces it's protecting
      *
-     * @return All potential moves for calculating check
+     * @return All hashed potential moves for calculating check
      */
-    public ArrayList<CoorPair> diagonalForCheck() {
+    public ArrayList<Integer> diagonalForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<CoorPair> movesForCheck = new ArrayList<>();
+        ArrayList<Integer> movesForCheck = new ArrayList<>();
 
         boolean canMoveUpRight = true;
         boolean canMoveUpLeft = true;
@@ -447,11 +451,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveUpRight = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveUpRight = false;
@@ -466,11 +470,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveUpLeft = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveUpLeft = false;
@@ -485,11 +489,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveDownLeft = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveDownLeft = false;
@@ -504,11 +508,11 @@ public abstract class Piece {
                 if (newMove.isInBounds()) {
                     if (Main.currentPieceLocations[newMove.getToken()] != null) {
                         if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(new CoorPair(newMove));
+                            movesForCheck.add(newMove.getToken());
                         }
                         canMoveDownRight = ifPieceKing(newMove);
                     } else {
-                        movesForCheck.add(new CoorPair(newMove));
+                        movesForCheck.add(newMove.getToken());
                     }
                 } else {
                     canMoveDownRight = false;

@@ -7,12 +7,12 @@ public class Bishop extends Piece {
     }
 
     @Override
-    public ArrayList<CoorPair> findPotentialMoves() {
+    public ArrayList<Integer> findPotentialMoves() {
         return findPotentialDiagonalMoves();
     }
 
     @Override
-    public ArrayList<CoorPair> movesForCheck() {
+    public ArrayList<Integer> movesForCheck() {
         return diagonalForCheck();
     }
 }

@@ -72,11 +72,11 @@ public class CoorPair {
 
         return token;
     }
-    public CoorPair reverseHash() {
+    public static CoorPair reverseHash(Integer token) {
         int y;
         int x;
         y = (int)Math.floor(token / 8.0);
-        x = token - 8*y;
+        x = token - y*8;
 
         return new CoorPair(x*60, y*60);
     }
