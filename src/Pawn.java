@@ -10,6 +10,7 @@ public class Pawn extends Piece {
     }
 
     public void setFirstMoveFalse() {
+        //Check if en-passantable
         if ( firstMove ) {
             if (this.color == Color.WHITE) {
                 if (this.getYCoor() == 240.0) {
@@ -25,10 +26,15 @@ public class Pawn extends Piece {
         firstMove = false;
     }
 
+    /**
+     * Check if this move en-passants
+     * @param move move to check
+     * @param legalMoves running list of potentially legal moves
+     */
     private void enPassantCheck(CoorPair move, ArrayList<CoorPair> legalMoves) {
-        if ( Main.currentPieceLocations.containsKey(move.getToken()) ) {
-            if ( Main.currentPieceLocations.get(move.getToken()) instanceof Pawn
-                    && ((Pawn) Main.currentPieceLocations.get(move.getToken())).enPassantable ) {
+        if ( Main.currentPieceLocations[move.getToken()] != null ) {
+            if ( Main.currentPieceLocations[move.getToken()] instanceof Pawn
+                    && ((Pawn) Main.currentPieceLocations[move.getToken()]).enPassantable ) {
                 move.setyCoor(move.getyCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
                 legalMoves.add(new CoorPair(move));
             }
@@ -48,8 +54,9 @@ public class Pawn extends Piece {
         } else {
             newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
         }
+
         //If there isn't a piece in front of us, we can move forwards
-        if (!Main.currentPieceLocations.containsKey(newMove.getToken())) {
+        if (Main.currentPieceLocations[newMove.getToken()] == null) {
             legalMoves.add(new CoorPair(newMove));
         }
 
@@ -78,15 +85,16 @@ public class Pawn extends Piece {
 
             //Checks left diagonal (up left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.getToken()) &&
-                    Main.currentPieceLocations.get(newMove.getToken()).color == Color.WHITE) {
+            if (Main.currentPieceLocations[newMove.getToken()] != null &&
+                    Main.currentPieceLocations[newMove.getToken()].color == Color.WHITE) {
+
                 legalMoves.add(new CoorPair(newMove));
             }
 
             //Checks right diagonal (up right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations.containsKey(newMove.getToken()) &&
-                    Main.currentPieceLocations.get(newMove.getToken()).color == Color.WHITE) {
+            if (Main.currentPieceLocations[newMove.getToken()] != null &&
+                    Main.currentPieceLocations[newMove.getToken()].color == Color.WHITE) {
                 legalMoves.add(new CoorPair(newMove));
             }
 
@@ -94,15 +102,15 @@ public class Pawn extends Piece {
 
             //Checks left diagonal (down left)
             newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.getToken()) &&
-                    Main.currentPieceLocations.get(newMove.getToken()).color == Color.BLACK) {
+            if (Main.currentPieceLocations[newMove.getToken()] != null &&
+                    Main.currentPieceLocations[newMove.getToken()].color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
 
             //Checks right diagonal (down right)
             newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations.containsKey(newMove.getToken()) &&
-                    Main.currentPieceLocations.get(newMove.getToken()).color == Color.BLACK) {
+            if (Main.currentPieceLocations[newMove.getToken()] != null &&
+                    Main.currentPieceLocations[newMove.getToken()].color == Color.BLACK) {
                 legalMoves.add(new CoorPair(newMove));
             }
         }

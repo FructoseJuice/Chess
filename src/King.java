@@ -49,22 +49,22 @@ public class King extends Piece {
 
             /*
             Only add castle as legal if the rook hasn't moved, and
-            we're not castling THROUGH, or INTO check.
+            we're not castling through, or into check.
              */
             if (rightRookCanCastle &
                     !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) &
                     !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken())) {
+                    Main.currentPieceLocations[new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()] == null &
+                    Main.currentPieceLocations[new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()] == null) {
                 legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()));
             }
 
             if (leftRookCanCastle &
                     !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) &
                     !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) &
-                    !Main.currentPieceLocations.containsKey(new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken())) {
+                    Main.currentPieceLocations[new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()] == null &
+                    Main.currentPieceLocations[new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()] == null &
+                    Main.currentPieceLocations[new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken()] == null) {
                 legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()));
             }
         }
@@ -123,8 +123,8 @@ public class King extends Piece {
 
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                return Main.currentPieceLocations.get(newMove.getToken()).color == this.color;
+            if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                return Main.currentPieceLocations[newMove.getToken()].color == this.color;
             } else {
                 return true;
             }
@@ -194,8 +194,8 @@ public class King extends Piece {
      */
     private boolean checkNewMove(CoorPair newMove) {
         if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                return Main.currentPieceLocations.get(newMove.getToken()).color != this.color;
+            if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                return Main.currentPieceLocations[newMove.getToken()].color != this.color;
             } else {
                 return true;
             }

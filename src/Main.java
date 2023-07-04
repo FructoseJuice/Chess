@@ -28,7 +28,7 @@ public class Main extends Application {
 
     //Used for checking the location and color of all pieces on board
     //Integer represents token of coordinate pair
-    public static HashMap<Integer, Piece> currentPieceLocations = new HashMap<>();
+    public static Piece[] currentPieceLocations = new Piece[64];
 
     //Represents all pieces currently on the board
     public static List<Piece> allPieces = new ArrayList<>();
@@ -78,6 +78,9 @@ public class Main extends Application {
         constructPieces();
         setActions();
 
+        //Remove extra pieces from list
+        allPieces.removeAll(extraPieces);
+
         //Makes AnchorPane for spaces
         AnchorPane spaces = new AnchorPane();
         spaces.setMaxSize(480, 480);
@@ -123,10 +126,10 @@ public class Main extends Application {
         for ( int xCoor = 0; xCoor < 8; xCoor++ ) {
 
             blackPieces.get(xCoor).setCoordinates(xCoor * 60, 0);
-            currentPieceLocations.put(blackPieces.get(xCoor).getCoordinates().getToken(), blackPieces.get(xCoor));
+            currentPieceLocations[blackPieces.get(xCoor).getCoordinates().getToken()] = blackPieces.get(xCoor);
 
             whitePieces.get(xCoor).setCoordinates(xCoor * 60, 420);
-            currentPieceLocations.put(whitePieces.get(xCoor).getCoordinates().getToken(), whitePieces.get(xCoor));
+            currentPieceLocations[whitePieces.get(xCoor).getCoordinates().getToken()] = whitePieces.get(xCoor);
 
         }
 
@@ -141,8 +144,8 @@ public class Main extends Application {
             blackPieces.get(i).setCoordinates(xCoor * 60, 60);
             whitePieces.get(i).setCoordinates(xCoor * 60, 360);
 
-            currentPieceLocations.put(whitePieces.get(i).getCoordinates().getToken(), whitePieces.get(i));
-            currentPieceLocations.put(blackPieces.get(i).getCoordinates().getToken(), blackPieces.get(i));
+            currentPieceLocations[whitePieces.get(i).getCoordinates().getToken()] = whitePieces.get(i);
+            currentPieceLocations[blackPieces.get(i).getCoordinates().getToken()] =blackPieces.get(i);
 
             ++xCoor;
         }
@@ -160,6 +163,7 @@ public class Main extends Application {
         //Puts all pieces into combined list
         allPieces.addAll(whitePieces);
         allPieces.addAll(blackPieces);
+        allPieces.addAll(extraPieces);
     }
 
 
@@ -170,14 +174,26 @@ public class Main extends Application {
      * @return If king is in check
      */
     public static boolean isKingInCheck(Piece.Color color) {
-        CoorPair kingCoordinates;
+        CoorPair kingCoordinates = null;
 
         //Grab this king's Coordinates
         if ( color == Piece.Color.WHITE ) {
-            kingCoordinates = whitePieces.get(4).getCoordinates();
+            //Find king
+            for ( Piece piece : whitePieces ) {
+                if ( piece instanceof King ) {
+                    kingCoordinates = piece.getCoordinates();
+                }
+            }
         } else {
-            kingCoordinates = blackPieces.get(4).getCoordinates();
+            for ( Piece piece : blackPieces ) {
+                if ( piece instanceof King ) {
+                    kingCoordinates = piece.getCoordinates();
+                }
+            }
         }
+
+        //We will always find each king
+        assert kingCoordinates != null;
 
         //Check all the moves for the opponent
         for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
@@ -220,15 +236,18 @@ public class Main extends Application {
      * @return if the move being made is legal
      */
     public boolean isPotentialMoveLegal(Piece piece) {
-        //Used to save if this is a legal move
         boolean isLegalMove = false;
-
 
         /*
         Check if this move is potentially legal
          */
+
+        //Check if it's this player's turn
+        //if (playerToMove != piece.color) return false;
+
+        //Check if desired move is potentially legal
         for (CoorPair potential : potentialMoves) {
-            if ( playerToMove == piece.color && piece.getCoordinates().coorEquals(potential) ) {
+            if (piece.getCoordinates().coorEquals(potential)) {
                 isLegalMove = true;
                 break;
             }
@@ -242,23 +261,23 @@ public class Main extends Application {
             Will NOT check if there's a piece in the desired coordinates.
             */
 
-            //Removes original coordinate of piece, so we can check it's new potential position
-            currentPieceLocations.remove(oldCoors.getToken());
-
             //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
-            if (!currentPieceLocations.containsKey(piece.getCoordinates().getToken())) {
+            if (currentPieceLocations[piece.getCoordinates().getToken()] == null) {
+                //Removes original coordinate of piece, so we can check it's new potential position
+                currentPieceLocations[oldCoors.getToken()] = null;
+
                 //Put new coordinates in
-                currentPieceLocations.put(piece.getCoordinates().getToken(), piece);
+                currentPieceLocations[piece.getCoordinates().getToken()] = piece;
 
                 //Not a legal move is king is now in check
                 isLegalMove = !isKingInCheck(piece.color);
 
                 //Remove new coordinates
-                Main.currentPieceLocations.remove(piece.getCoordinates().getToken());
-            }
+                Main.currentPieceLocations[piece.getCoordinates().getToken()] = null;
 
-            //Restores old coors
-            Main.currentPieceLocations.put(oldCoors.getToken(), piece);
+                //Restore old coordinates
+                Main.currentPieceLocations[oldCoors.getToken()] = piece;
+            }
         }
 
         /*
@@ -268,7 +287,7 @@ public class Main extends Application {
         if (isLegalMove && piece instanceof Pawn) {
             if (piece.color == Piece.Color.WHITE && piece.getYCoor() == 120.0
                     || piece.color == Piece.Color.BLACK && piece.getYCoor() == 300.0) {
-                //Save potential captured piece
+
                 CoorPair tempCoor = new CoorPair(piece.getCoordinates());
                 Piece tempPiece;
 
@@ -276,9 +295,8 @@ public class Main extends Application {
                 tempCoor.setyCoor(tempCoor.getyCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
 
                 //Check for piece in this space
-
-                if (currentPieceLocations.containsKey(tempCoor.getToken())) {
-                    tempPiece = currentPieceLocations.get(tempCoor.getToken());
+                if (currentPieceLocations[tempCoor.getToken()] != null) {
+                    tempPiece = currentPieceLocations[tempCoor.getToken()];
 
                     //Check if pawn
                     if (tempPiece instanceof Pawn) {
@@ -291,7 +309,7 @@ public class Main extends Application {
                             //when checking for checkmate
                             tempPiece.setCoordinates(-1000, -1000);
                             allPieces.remove(tempPiece);
-                            currentPieceLocations.remove(tempCoor.getToken());
+                            currentPieceLocations[tempCoor.getToken()] = null;
 
                             return true;
                         }
@@ -308,40 +326,42 @@ public class Main extends Application {
         /*
         Checks if there's a piece in the space the player is trying to move to
         */
-        if (currentPieceLocations.containsKey(piece.getCoordinates().getToken())) {
-            //if there's a piece there of a different color
-            if (currentPieceLocations.get(piece.getCoordinates().getToken()).color != piece.color) {
-                //Save the piece we're capturing
-                Piece capturedPiece = currentPieceLocations.get(piece.getCoordinates().getToken());
 
-                //Saves the "captured" pieces coordinates
-                CoorPair capturedOldCoors = capturedPiece.getCoordinates();
+        if ( currentPieceLocations[piece.getCoordinates().getToken()] == null ) return true;
 
-                //Change coordinates of this piece to prevent move calculation for it
+        //if there's a piece there of a different color
+        if (currentPieceLocations[piece.getCoordinates().getToken()].color != piece.color) {
+
+            //Save the piece we're attempting to capture
+            Piece capturedPiece = currentPieceLocations[piece.getCoordinates().getToken()];
+            currentPieceLocations[piece.getCoordinates().getToken()] = null;
+
+            //Saves the "captured" pieces coordinates
+            CoorPair capturedOldCoors = capturedPiece.getCoordinates();
+
+            //Change coordinates of this piece to prevent move calculation for it
+            capturedPiece.setCoordinates(-1000, -1000);
+
+            //Temporarily change this pieces coordinates
+            currentPieceLocations[oldCoors.getToken()] = null;
+            currentPieceLocations[piece.getCoordinates().getToken()] = piece;
+
+            //Check if king is in check
+            isLegalMove = !isKingInCheck(piece.color);
+
+            //Give pieces its coordinates back and restore pieces map
+            capturedPiece.setCoordinates(capturedOldCoors.getxCoor(), capturedOldCoors.getyCoor());
+            currentPieceLocations[oldCoors.getToken()] = piece;
+            currentPieceLocations[capturedOldCoors.getToken()] = capturedPiece;
+
+            //If this is a legal move we're capturing a piece
+            if (isLegalMove) {
+                //Remove piece from board
+                allPieces.remove(capturedPiece);
+                currentPieceLocations[capturedPiece.getCoordinates().getToken()] = null;
+
+                //Set coordinates off board
                 capturedPiece.setCoordinates(-1000, -1000);
-
-                //Temporarily change this pieces coordinates
-                currentPieceLocations.remove(oldCoors.getToken());
-                currentPieceLocations.put(piece.getCoordinates().getToken(), piece);
-
-                //Check if king is still in check
-                isLegalMove = !isKingInCheck(piece.color);
-
-                //Give pieces its coordinates back and restore pieces map
-                capturedPiece.setCoordinates(capturedOldCoors.getxCoor(), capturedOldCoors.getyCoor());
-                currentPieceLocations.put(oldCoors.getToken(), piece);
-                currentPieceLocations.put(capturedOldCoors.getToken(), capturedPiece);
-
-                //If this is a legal move we're capturing a piece
-                //Must only go into this statement if we're allowed to capture pieces
-                if (isLegalMove) {
-                    //Remove piece from board
-                    allPieces.remove(capturedPiece);
-                    currentPieceLocations.remove(capturedPiece.getCoordinates().getToken());
-
-                    //Set coordinates off board
-                    capturedPiece.setCoordinates(-1000, -1000);
-                }
             }
         }
 
@@ -364,7 +384,6 @@ public class Main extends Application {
 
                 //Find all legal moves for chosen piece
                 potentialMoves = piece.findPotentialMoves();
-
             });
 
             piece.pieceObject.setOnMouseDragged(event -> {
@@ -378,12 +397,14 @@ public class Main extends Application {
             });
 
             piece.pieceObject.setOnMouseReleased(event -> {
+
                 //Update cursor
                 piece.pieceObject.setCursor(Cursor.OPEN_HAND);
 
                 //For SFX control
                 boolean playedSFX = false;
                 boolean playCapture = false;
+                boolean promoted = false;
 
                 //Finds the nearest space to the cursor
                 piece.findNearestSpace();
@@ -411,7 +432,7 @@ public class Main extends Application {
                     piece.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
 
                 } else {
-                    currentPieceLocations.remove(oldCoors.getToken());
+                    currentPieceLocations[oldCoors.getToken()] = null;
 
                     //Clear pawn en-passantable booleans
                     for ( Piece pawn : allPieces ) {
@@ -448,14 +469,20 @@ public class Main extends Application {
                         Handle Pawn promotion logic
                          */
                         if (piece.getYCoor() == 0 || piece.getYCoor() == 420) {
+                            //Set promotion flag
+                            promoted = true;
+
                             //Gets a new queen in the correct color
                             Piece newQueen = (piece.color == Piece.Color.WHITE) ? extraPieces.getFirst() : extraPieces.getLast();
+
                             //Remove queen from extra piece list
                             extraPieces.remove(newQueen);
-                            //Set Queen to correct coordinates
-                            newQueen.setCoordinates(piece.getXCoor(), piece.getYCoor());
+
+                            //Set Queen to new coordinates
+                            newQueen.setCoordinates(piece.getCoordinates());
                             piece.setCoordinates(-1000, -1000);
-                            currentPieceLocations.put(newQueen.getCoordinates().getToken(), newQueen);
+                            currentPieceLocations[newQueen.getCoordinates().getToken()] = newQueen;
+
                             //Update relevant piece lists
                             allPieces.add(newQueen);
                             allPieces.remove(piece);
@@ -476,6 +503,7 @@ public class Main extends Application {
                     //Check if king
                     } else if (piece instanceof King) {
                         //Check if we're castling
+                        //TODO: optimize
                         for (Piece rook : Main.allPieces) {
                             if (rook.pieceType == Piece.PieceType.ROOK & rook.color == piece.color) {
                                 if (((Rook) rook).getFirstMoveStatus()) {
@@ -487,9 +515,9 @@ public class Main extends Application {
                                                 .coorEquals(
                                                         new CoorPair(oldCoors.getxCoor() + 120, oldCoors.getyCoor()))) {
                                             //Update location of rook
-                                            currentPieceLocations.remove(rook.getCoordinates().getToken());
+                                            currentPieceLocations[rook.getCoordinates().getToken()] = null;
                                             rook.setCoordinates(oldCoors.getxCoor() + 60, oldCoors.getyCoor());
-                                            currentPieceLocations.put(rook.getCoordinates().getToken(), rook);
+                                            currentPieceLocations[rook.getCoordinates().getToken()] = rook;
 
                                             soundControl.playCastling();
 
@@ -506,9 +534,9 @@ public class Main extends Application {
                                                 .coorEquals(
                                                         new CoorPair(oldCoors.getxCoor() - 120, oldCoors.getyCoor()))) {
                                             //Update location of rooks
-                                            currentPieceLocations.remove(rook.getCoordinates().getToken());
+                                            currentPieceLocations[rook.getCoordinates().getToken()] = null;
                                             rook.setCoordinates(oldCoors.getxCoor() - 60, oldCoors.getyCoor());
-                                            currentPieceLocations.put(rook.getCoordinates().getToken(), rook);
+                                            currentPieceLocations[rook.getCoordinates().getToken()] = rook;
 
                                             soundControl.playCastling();
 
@@ -530,8 +558,10 @@ public class Main extends Application {
                         soundControl.playMove();
                     }
 
-                    //Update pieces location
-                    currentPieceLocations.put(piece.getCoordinates().getToken(), piece);
+                    if (!promoted) {
+                        //Update pieces location
+                        currentPieceLocations[piece.getCoordinates().getToken()] = piece;
+                    }
 
                     //Draw new location to board
                     piece.draw();
@@ -546,20 +576,24 @@ public class Main extends Application {
                         //Temporarily sets checkmate to true
                         checkmate = true;
                         //Check if opponent can make any legal moves
-                        for ( Piece piece1 : (piece.color == Piece.Color.WHITE) ? blackPieces : whitePieces ) {
+                        for ( Piece pieceToCheck : (piece.color == Piece.Color.WHITE) ? blackPieces : whitePieces ) {
+                            //Exit loop if mate
                             if ( !checkmate ) break;
-                            potentialMoves = piece1.findPotentialMoves();
-                            oldCoors = piece1.getCoordinates();
+
+                            //Find all potential moves
+                            potentialMoves = pieceToCheck.findPotentialMoves();
+
+                            oldCoors = pieceToCheck.getCoordinates();
                             for ( CoorPair move : potentialMoves) {
-                                piece1.setCoordinates(move.getxCoor(), move.getyCoor());
+                                pieceToCheck.setCoordinates(move.getxCoor(), move.getyCoor());
                                 //Check move
-                                if (isPotentialMoveLegal(piece1)) {
+                                if (isPotentialMoveLegal(pieceToCheck)) {
                                     //Found legal move means no checkmate
                                     checkmate = false;
                                     break;
                                 }
                             }
-                            piece1.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
+                            pieceToCheck.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
                         }
 
 

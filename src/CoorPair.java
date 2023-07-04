@@ -64,15 +64,21 @@ public class CoorPair {
 
     @Override
     public int hashCode() {
-        if (xCoor >= yCoor) {
-            return (int) (Math.pow(xCoor, 2) + xCoor + yCoor);
-        } else {
-            return (int) (xCoor + Math.pow(yCoor, 2));
-        }
-    }
+        int token;
+        int x = (int) (xCoor / 60.0);
+        int y = (int) (yCoor / 60.0);
 
+        token = (y*8) + x;
+
+        return token;
+    }
     public CoorPair reverseHash() {
-        return null;
+        int y;
+        int x;
+        y = (int)Math.floor(token / 8.0);
+        x = token - 8*y;
+
+        return new CoorPair(x*60, y*60);
     }
 
 }

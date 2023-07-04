@@ -72,6 +72,10 @@ public abstract class Piece {
         draw();
     }
 
+    public void setCoordinates(CoorPair newCoors) {
+        coorPair = new CoorPair(newCoors.getxCoor(), newCoors.getyCoor());
+    }
+
     //Returns in format:
     //double[XCoor, YCoor]
     public CoorPair getCoordinates() {
@@ -108,22 +112,29 @@ public abstract class Piece {
         //Finding closest x coordinate
         int xCoor = (int) coorPair.getxCoor();
 
-        quotient = Math.floorDiv(xCoor, 60);
-        //Find remainder and determine closest square
-        if ( xCoor % 60 >= 30 ) quotient++;
+        if (xCoor < 30) {
+            coorPair.setxCoor(0);
+        } else {
+            quotient = Math.floorDiv(xCoor, 60);
+            //Find remainder and determine closest square
+            if (xCoor % 60 >= 30) quotient++;
 
-        coorPair.setxCoor(quotient * 60.0);
+            coorPair.setxCoor(quotient * 60.0);
+        }
 
 
         //Finding closest y coordinate
         int yCoor = (int) coorPair.getyCoor();
 
+        if ( yCoor < 30 ) {
+            coorPair.setyCoor(0);
+        } else {
+            quotient = Math.floorDiv(yCoor, 60);
 
-        quotient = Math.floorDiv(yCoor, 60);
+            if (yCoor % 60 >= 30) quotient++;
 
-        if ( yCoor % 60 >= 30 ) quotient++;
-
-        coorPair.setyCoor(quotient * 60.0);
+            coorPair.setyCoor(quotient * 60.0);
+        }
     }
 
 
@@ -149,8 +160,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveUpRight = false;
@@ -168,8 +179,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveUpLeft = false;
@@ -187,8 +198,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveDownLeft = false;
@@ -206,8 +217,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveDownRight = false;
@@ -246,8 +257,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor());
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveRight = false;
@@ -264,8 +275,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor());
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveLeft = false;
@@ -282,8 +293,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor(), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveUp = false;
@@ -300,8 +311,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor(), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color != this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                             legalMoves.add(new CoorPair(newMove));
                         }
                         canMoveDown = false;
@@ -339,8 +350,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor());
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
 
                         }
@@ -359,8 +370,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor());
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveLeft = ifPieceKing(newMove);
@@ -377,8 +388,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor(), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveUp = ifPieceKing(newMove);
@@ -395,8 +406,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor(), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveDown = ifPieceKing(newMove);
@@ -434,8 +445,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveUpRight = ifPieceKing(newMove);
@@ -453,8 +464,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() - (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveUpLeft = ifPieceKing(newMove);
@@ -472,8 +483,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveDownLeft = ifPieceKing(newMove);
@@ -491,8 +502,8 @@ public abstract class Piece {
                 newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() + (i * 60));
 
                 if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations.containsKey(newMove.getToken())) {
-                        if (Main.currentPieceLocations.get(newMove.getToken()).color == this.color) {
+                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
                             movesForCheck.add(new CoorPair(newMove));
                         }
                         canMoveDownRight = ifPieceKing(newMove);
@@ -518,6 +529,6 @@ public abstract class Piece {
      */
     private boolean ifPieceKing(CoorPair newMove) {
         //If the piece is the king, we have to keep adding moves in this direction
-        return Main.currentPieceLocations.get(newMove.getToken()) instanceof King;
+        return Main.currentPieceLocations[newMove.getToken()] instanceof King;
     }
 }
