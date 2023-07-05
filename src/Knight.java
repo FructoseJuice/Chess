@@ -8,57 +8,26 @@ public class Knight extends Piece {
 
     @Override
     public ArrayList<Integer> findPotentialMoves() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+        if (!this.getCoordinates().isInBounds()) {
+            return new ArrayList<>();
+        }
 
-        CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<Integer> legalMoves = new ArrayList<>();
+        CoorPair newMove = new CoorPair(-1, -1);
 
-        //Checks up 2 right 1 movement
-        newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 120);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
+        int[][] movements = {
+                {60, -120}, {120, -60}, {-60, -120}, {-120, -60},
+                {60, 120}, {120, 60}, {-60, 120}, {-120, 60}
+        };
 
-        //Checks up 1 right 2 movement
-        newMove.setCoordinates(this.getXCoor() + 120, this.getYCoor() - 60);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
+        for (int[] movement : movements) {
+            int dx = movement[0]; //X coordinate movement
+            int dy = movement[1]; //Y coordinate movement
 
-        //Checks up 2 left 1 movement
-        newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 120);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
-
-        //Checks up 1 left 2 movement
-        newMove.setCoordinates(this.getXCoor() - 120, this.getYCoor() - 60);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
-
-        //Checks down 2 right 1 movement
-        newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 120);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
-
-        //Checks down 1 right 2 movement
-        newMove.setCoordinates(this.getXCoor() + 120, this.getYCoor() + 60);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
-
-        //Checks down 2 left 1 movement
-        newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 120);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
-        }
-
-        //Check down 1 left 2 movement
-        newMove.setCoordinates(this.getXCoor() - 120, this.getYCoor() + 60);
-        if (checkNewMove(newMove)) {
-            legalMoves.add(newMove.getToken());
+            newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
+            if (checkNewMove(newMove)) {
+                legalMoves.add(newMove.getToken());
+            }
         }
 
         return legalMoves;
@@ -81,6 +50,10 @@ public class Knight extends Piece {
         return false;
     }
 
+    /**
+     * Check every move this knight can make, including those protecting their own pieces
+     * @return List of all possible moves
+     */
     @Override
     public ArrayList<Integer> movesForCheck() {
         if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
@@ -88,52 +61,19 @@ public class Knight extends Piece {
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<Integer> potentialMoves = new ArrayList<>();
 
-        //Checks up 2 right 1 movement
-        newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 120);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
+        int[][] movements = {
+                {60, -120}, {120, -60}, {-60, -120}, {-120, -60},
+                {60, 120}, {120, 60}, {-60, 120}, {-120, 60}
+        };
 
-        //Checks up 1 right 2 movement
-        newMove.setCoordinates(this.getXCoor() + 120, this.getYCoor() - 60);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
+        for (int[] movement : movements) {
+            int dx = movement[0]; //X coordinate movement
+            int dy = movement[1]; //Y coordinate movement
 
-        //Checks up 2 left 1 movement
-        newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 120);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
-
-        //Checks up 1 left 2 movement
-        newMove.setCoordinates(this.getXCoor() - 120, this.getYCoor() - 60);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
-
-        //Checks down 2 right 1 movement
-        newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 120);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
-
-        //Checks down 1 right 2 movement
-        newMove.setCoordinates(this.getXCoor() + 120, this.getYCoor() + 60);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
-
-        //Checks down 2 left 1 movement
-        newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 120);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
-        }
-
-        //Check down 1 left 2 movement
-        newMove.setCoordinates(this.getXCoor() - 120, this.getYCoor() + 60);
-        if (checkPotentialMoveForCheck(newMove)) {
-            potentialMoves.add(newMove.getToken());
+            newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
+            if (checkPotentialMoveForCheck(newMove)) {
+                potentialMoves.add(newMove.getToken());
+            }
         }
 
         return potentialMoves;

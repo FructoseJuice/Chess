@@ -20,7 +20,7 @@ public class Main extends Application {
     GLOBAL VARIABLES
      */
 
-    //Sets up AnchorPane of piece images
+    //AnchorPane of piece images
     AnchorPane anchorPane = constructBoard();
 
     //Used for sound effects
@@ -30,13 +30,17 @@ public class Main extends Application {
     //Integer represents token of coordinate pair
     public static Piece[] currentPieceLocations = new Piece[64];
 
-    //Represents all pieces currently on the board
+    //Holds all pieces currently on the board
     public static List<Piece> allPieces = new ArrayList<>();
     public static List<Piece> whitePieces = new ArrayList<>();
     public static List<Piece> blackPieces = new ArrayList<>();
 
     //All queens that can be used for pawn promotion
     public static LinkedList<Piece> extraPieces = new LinkedList<>();
+    //Saves a pieces old coordinates before being moved
+    CoorPair oldCoors;
+    //Saves the legal moves of a piece
+    ArrayList<Integer> potentialMoves = new ArrayList<>();
     //Logs the current player to move
     Piece.Color playerToMove = Piece.Color.WHITE;
     //If game is in checkmate status
@@ -73,6 +77,10 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Adds all pieces to anchorPane
+     * @return AnchorPane with pieces
+     */
     public AnchorPane constructBoard() throws FileNotFoundException {
         //Make pieces and set actions on every piece
         constructPieces();
@@ -168,57 +176,6 @@ public class Main extends Application {
 
 
     /**
-     * Checks if a king is in check in the current board state
-     *
-     * @param color the color of the player
-     * @return If king is in check
-     */
-    public static boolean isKingInCheck(Piece.Color color) {
-        Integer kingCoordinates = null;
-
-        //Grab this king's Coordinates
-        if ( color == Piece.Color.WHITE ) {
-            //Find king
-            for ( Piece piece : whitePieces ) {
-                if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates().getToken();
-                }
-            }
-        } else {
-            for ( Piece piece : blackPieces ) {
-                if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates().getToken();
-                }
-            }
-        }
-
-        //We will always find each king
-        assert kingCoordinates != null;
-
-        //Check all the moves for the opponent
-        for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
-            if (piece.pieceType == Piece.PieceType.PAWN || piece.pieceType == Piece.PieceType.KING) {
-                //If piece is a pawn or king we need special logic
-                for ( Integer legalMove : piece.movesForCheck() ) {
-                    if (Objects.equals(legalMove, kingCoordinates)) return true;
-                }
-            } else {
-                for ( Integer legalMove : piece.findPotentialMoves() ) {
-                    if (Objects.equals(legalMove, kingCoordinates)) return true;
-                }
-            }
-        }
-
-        //Return false if no moves were found to put king in check
-        return false;
-    }
-
-    //Logs a pieces old coordinates before being moved
-    CoorPair oldCoors;
-    //Logs the legal moves a piece
-    ArrayList<Integer> potentialMoves = new ArrayList<>();
-
-    /**
      * Takes a players color and returns the opponents color.
      * @param color color of the player in question
      * @return oponents color
@@ -292,7 +249,7 @@ public class Main extends Application {
                 Piece tempPiece;
 
                 //Increment up/down space based on color
-                tempCoor.setyCoor(tempCoor.getyCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
+                tempCoor.setYCoor(tempCoor.getYCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
 
                 //Check for piece in this space
                 if (currentPieceLocations[tempCoor.getToken()] != null) {
@@ -356,7 +313,7 @@ public class Main extends Application {
             isLegalMove = !isKingInCheck(piece.color);
 
             //Give pieces its coordinates back and restore pieces map
-            capturedPiece.setCoordinates(capturedOldCoors.getxCoor(), capturedOldCoors.getyCoor());
+            capturedPiece.setCoordinates(capturedOldCoors.getXCoor(), capturedOldCoors.getYCoor());
             currentPieceLocations[oldCoors.getToken()] = piece;
             currentPieceLocations[capturedOldCoors.getToken()] = capturedPiece;
 
@@ -375,62 +332,182 @@ public class Main extends Application {
     }
 
     /**
+     * Checks if @pawn can promote, if it can promote
+     * handle logic to replace it with a queen of the correct color.
+     * @param pawn Pawn to check
+     * @return If @pawn has promoted or not
+     */
+    public boolean handlePawnPromotion(Piece pawn) {
+        if (pawn.getYCoor() == 0 || pawn.getYCoor() == 420) {
+            //Gets a new queen in the correct color
+            Piece newQueen = (pawn.color == Piece.Color.WHITE) ? extraPieces.getFirst() : extraPieces.getLast();
+
+            //Remove queen from extra piece list
+            extraPieces.remove(newQueen);
+
+            //Set Queen to new coordinates
+            newQueen.setCoordinates(pawn.getCoordinates());
+            pawn.setCoordinates(-1000, -1000);
+            currentPieceLocations[newQueen.getCoordinates().getToken()] = newQueen;
+
+            //Update relevant piece lists
+            allPieces.add(newQueen);
+            allPieces.remove(pawn);
+            if ( newQueen.color == Piece.Color.WHITE) {
+                whitePieces.remove(pawn);
+                whitePieces.add(newQueen);
+            } else {
+                blackPieces.remove(pawn);
+                blackPieces.add(newQueen);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a king is in check in the current board state
+     *
+     * @param color the color of the player
+     * @return If king is in check
+     */
+    public static boolean isKingInCheck(Piece.Color color) {
+        Integer kingCoordinates = null;
+
+        //Grab this king's Coordinates
+        if ( color == Piece.Color.WHITE ) {
+            //Find king
+            for ( Piece piece : whitePieces ) {
+                if ( piece instanceof King ) {
+                    kingCoordinates = piece.getCoordinates().getToken();
+                }
+            }
+        } else {
+            for ( Piece piece : blackPieces ) {
+                if ( piece instanceof King ) {
+                    kingCoordinates = piece.getCoordinates().getToken();
+                }
+            }
+        }
+
+        //We will always find each king
+        assert kingCoordinates != null;
+
+        //Check all the moves for the opponent
+        for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
+            if (piece.pieceType == Piece.PieceType.PAWN || piece.pieceType == Piece.PieceType.KING) {
+                //If piece is a pawn or king we need special logic
+                for ( Integer legalMove : piece.movesForCheck() ) {
+                    if (Objects.equals(legalMove, kingCoordinates)) return true;
+                }
+            } else {
+                for ( Integer legalMove : piece.findPotentialMoves() ) {
+                    if (Objects.equals(legalMove, kingCoordinates)) return true;
+                }
+            }
+        }
+
+        //Return false if no moves were found to put king in check
+        return false;
+    }
+
+    /**
+     * Checks given color to see if that player can make any moves
+     * @param colorToCheck Color to check
+     */
+    public void inCheckmate(Piece.Color colorToCheck) {
+        //First check if king is in check
+        if (isKingInCheck(getOpponentColor(colorToCheck))) {
+            //Temporarily sets checkmate to true
+            checkmate = true;
+            //Check if opponent can make any legal moves
+            for (Piece pieceToCheck : (colorToCheck == Piece.Color.WHITE) ? blackPieces : whitePieces) {
+                //Exit loop if mate
+                if (!checkmate) break;
+
+                //Find all potential moves
+                potentialMoves = pieceToCheck.findPotentialMoves();
+
+                oldCoors = pieceToCheck.getCoordinates();
+                for (Integer move : potentialMoves) {
+                    pieceToCheck.setCoordinates(move);
+                    //Check move
+                    if (isPotentialMoveLegal(pieceToCheck)) {
+                        //Found legal move means no checkmate
+                        checkmate = false;
+                        break;
+                    }
+                }
+
+                //Restore coordinates of piece we're checking
+                pieceToCheck.setCoordinates(oldCoors.getXCoor(), oldCoors.getYCoor());
+            }
+
+
+            if (checkmate) System.out.println("Checkmate.");
+        }
+    }
+
+    /**
      * Set user input actions for each piece
      */
     public void setActions() {
         //Set actions for all pieces
-        for (Piece piece : allPieces) {
-            piece.pieceObject.setOnMouseEntered(event -> piece.pieceObject.setCursor(Cursor.OPEN_HAND));
+        for (Piece movedPiece : allPieces) {
+            movedPiece.pieceObject.setOnMouseEntered(event -> movedPiece.pieceObject.setCursor(Cursor.OPEN_HAND));
 
-            piece.pieceObject.setOnMousePressed(event -> {
+            movedPiece.pieceObject.setOnMousePressed(event -> {
 
                 //Logs old coordinates
-                oldCoors = new CoorPair(piece.getXCoor(), piece.getYCoor());
+                oldCoors = new CoorPair(movedPiece.getXCoor(), movedPiece.getYCoor());
 
                 //Update cursor
-                piece.pieceObject.setCursor(Cursor.CLOSED_HAND);
-                piece.pieceObject.toFront();
+                movedPiece.pieceObject.setCursor(Cursor.CLOSED_HAND);
+                movedPiece.pieceObject.toFront();
 
-
-                //Find all legal moves for chosen piece
-                potentialMoves = piece.findPotentialMoves();
+                //Find all potentially legal moves for chosen piece
+                potentialMoves = movedPiece.findPotentialMoves();
             });
 
-            piece.pieceObject.setOnMouseDragged(event -> {
-
-                piece.pieceObject.setCursor(Cursor.CLOSED_HAND);
-                //Must adjust coordinates by 30 before "attaching" to mouse
-                piece.setXCoor(event.getSceneX() - 30);
-                piece.setYCoor(event.getSceneY() - 30);
-                piece.draw();
-
-            });
-
-            piece.pieceObject.setOnMouseReleased(event -> {
+            movedPiece.pieceObject.setOnMouseDragged(event -> {
 
                 //Update cursor
-                piece.pieceObject.setCursor(Cursor.OPEN_HAND);
+                movedPiece.pieceObject.setCursor(Cursor.CLOSED_HAND);
 
-                //For SFX control
+                //Center the piece on mouse throughout mouse movement
+                movedPiece.setXCoor(event.getSceneX() - 30);
+                movedPiece.setYCoor(event.getSceneY() - 30);
+                movedPiece.draw();
+
+            });
+
+            movedPiece.pieceObject.setOnMouseReleased(event -> {
+
+                //Update cursor
+                movedPiece.pieceObject.setCursor(Cursor.OPEN_HAND);
+
                 boolean playedSFX = false;
                 boolean playCapture = false;
                 boolean promoted = false;
+                boolean isLegalMove = false;
 
-                //Finds the nearest space to the cursor
-                piece.findNearestSpace();
 
-                //Used to save if this is a legal move
-                boolean isLegalMove;
+                //Find the nearest space to the cursor
+                movedPiece.findNearestSpace();
 
                 //Save size for checking if we captured piece
                 int size = allPieces.size();
 
                 //Check if this move is legal
-                isLegalMove = isPotentialMoveLegal(piece);
+                if (!checkmate) {
+                    isLegalMove = isPotentialMoveLegal(movedPiece);
+                }
 
                 //Check if we're making a legal capture
                 if ( isLegalMove ) {
-                    isLegalMove = checkForCapture(piece);
+                    isLegalMove = checkForCapture(movedPiece);
                 }
 
                 //Check if we captured a piece
@@ -439,10 +516,18 @@ public class Main extends Application {
 
                 if (!isLegalMove) {
                     //Bounces piece back to its original coordinates
-                    piece.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
+                    movedPiece.setCoordinates(oldCoors.getXCoor(), oldCoors.getYCoor());
 
                 } else {
+                    //Remove piece from old coordinates
                     currentPieceLocations[oldCoors.getToken()] = null;
+
+                    //Switch the turn
+                    if (playerToMove == Piece.Color.WHITE) {
+                        playerToMove = Piece.Color.BLACK;
+                    } else {
+                        playerToMove = Piece.Color.WHITE;
+                    }
 
                     //Clear pawn en-passantable booleans
                     for ( Piece pawn : allPieces ) {
@@ -452,7 +537,7 @@ public class Main extends Application {
                     }
 
                     //Check if opponent king is now in check
-                    if (isKingInCheck(getOpponentColor(piece.color))) {
+                    if (isKingInCheck(getOpponentColor(movedPiece.color))) {
                         soundControl.playCheck();
                         playedSFX = true;
                         playCapture = false;
@@ -464,102 +549,66 @@ public class Main extends Application {
                         playedSFX = true;
                     }
 
-                    //Switch the turn
-                    if (playerToMove == Piece.Color.WHITE) {
-                        playerToMove = Piece.Color.BLACK;
-                    } else {
-                        playerToMove = Piece.Color.WHITE;
+                    //If a pawn moves we need to set first move to false and check for piece promotion
+                    if (movedPiece instanceof Pawn) {
+                        ((Pawn) movedPiece).setFirstMoveFalse();
+                        //Checks for and handles pawn promotion
+                        promoted = handlePawnPromotion(movedPiece);
                     }
 
-                    //If a pawn moves we need to set first move to false and check for piece promotion
-                    if (piece instanceof Pawn) {
-                        ((Pawn) piece).setFirstMoveFalse();
-
-                        /*
-                        Handle Pawn promotion logic
-                         */
-                        if (piece.getYCoor() == 0 || piece.getYCoor() == 420) {
-                            //Set promotion flag
-                            promoted = true;
-
-                            //Gets a new queen in the correct color
-                            Piece newQueen = (piece.color == Piece.Color.WHITE) ? extraPieces.getFirst() : extraPieces.getLast();
-
-                            //Remove queen from extra piece list
-                            extraPieces.remove(newQueen);
-
-                            //Set Queen to new coordinates
-                            newQueen.setCoordinates(piece.getCoordinates());
-                            piece.setCoordinates(-1000, -1000);
-                            currentPieceLocations[newQueen.getCoordinates().getToken()] = newQueen;
-
-                            //Update relevant piece lists
-                            allPieces.add(newQueen);
-                            allPieces.remove(piece);
-                            if ( newQueen.color == Piece.Color.WHITE) {
-                                whitePieces.remove(piece);
-                                whitePieces.add(newQueen);
-                            } else {
-                                blackPieces.remove(piece);
-                                blackPieces.add(newQueen);
-                            }
-                        }
-
-                    //Check if rook
-                    } else if (piece instanceof Rook) {
-
-                        ((Rook) piece).setFirstMoveFalse();
+                    //If a rook, set first move to false
+                    if (movedPiece instanceof Rook) {
+                        ((Rook) movedPiece).setFirstMoveFalse();
+                    }
 
                     //Check if king
-                    } else if (piece instanceof King) {
+                    if (movedPiece instanceof King) {
+                        ((King) movedPiece).setFirstMoveFalse();
                         //Check if we're castling
-                        //TODO: optimize
-                        for (Piece rook : Main.allPieces) {
-                            if (rook.pieceType == Piece.PieceType.ROOK & rook.color == piece.color) {
-                                if (((Rook) rook).getFirstMoveStatus()) {
-                                    //If Right rook can castle
-                                    if (rook.getCoordinates()
-                                            .coorEquals(new CoorPair(oldCoors.getxCoor() + 180, oldCoors.getyCoor()))) {
-                                        //Checks if this move is trying to castle
-                                        if (piece.getCoordinates()
-                                                .coorEquals(
-                                                        new CoorPair(oldCoors.getxCoor() + 120, oldCoors.getyCoor()))) {
-                                            //Update location of rook
-                                            currentPieceLocations[rook.getCoordinates().getToken()] = null;
-                                            rook.setCoordinates(oldCoors.getxCoor() + 60, oldCoors.getyCoor());
-                                            currentPieceLocations[rook.getCoordinates().getToken()] = rook;
+                        for (Piece rook : (movedPiece.color == Piece.Color.WHITE) ? whitePieces : blackPieces) {
+                            if (rook.pieceType == Piece.PieceType.ROOK) {
+                                //Checking right rook
+                                if (rook.getCoordinates()
+                                        .coorEquals(new CoorPair(oldCoors.getXCoor() + 180, oldCoors.getYCoor()))) {
+                                    //Checks if this move is trying to castle with right rook
+                                    if (movedPiece.getCoordinates()
+                                            .coorEquals(
+                                                    new CoorPair(oldCoors.getXCoor() + 120, oldCoors.getYCoor()))) {
+                                        //Update location of rook
+                                        currentPieceLocations[rook.getCoordinates().getToken()] = null;
+                                        rook.setCoordinates(rook.getXCoor() - 120, oldCoors.getYCoor());
+                                        currentPieceLocations[rook.getCoordinates().getToken()] = rook;
 
-                                            soundControl.playCastling();
+                                        soundControl.playCastling();
 
-                                            playedSFX = true;
-                                            //If we've castled there's no need to continue checking pieces
-                                            break;
-                                        }
+                                        playedSFX = true;
+
+                                        //If we've castled there's no need to continue checking pieces
+                                        break;
                                     }
-                                    //If Left rook can castle
-                                    if (rook.getCoordinates()
-                                            .coorEquals(new CoorPair(oldCoors.getxCoor() - 240, oldCoors.getyCoor()))) {
-                                        //Checks if this move is trying to castle
-                                        if (piece.getCoordinates()
-                                                .coorEquals(
-                                                        new CoorPair(oldCoors.getxCoor() - 120, oldCoors.getyCoor()))) {
-                                            //Update location of rooks
-                                            currentPieceLocations[rook.getCoordinates().getToken()] = null;
-                                            rook.setCoordinates(oldCoors.getxCoor() - 60, oldCoors.getyCoor());
-                                            currentPieceLocations[rook.getCoordinates().getToken()] = rook;
+                                }
+                                //Checking left rook
+                                if (rook.getCoordinates()
+                                        .coorEquals(new CoorPair(oldCoors.getXCoor() - 240, oldCoors.getYCoor()))) {
+                                    //Checks if this move is trying to castle with left rook
+                                    if (movedPiece.getCoordinates()
+                                            .coorEquals(
+                                                    new CoorPair(oldCoors.getXCoor() - 120, oldCoors.getYCoor()))) {
+                                        //Update location of rook
+                                        currentPieceLocations[rook.getCoordinates().getToken()] = null;
+                                        rook.setCoordinates(rook.getXCoor() + 180, rook.getYCoor());
+                                        currentPieceLocations[rook.getCoordinates().getToken()] = rook;
 
-                                            soundControl.playCastling();
+                                        soundControl.playCastling();
 
-                                            playedSFX = true;
-                                            //If we've castled there's no need to continue checking pieces
-                                            break;
-                                        }
+                                        playedSFX = true;
+
+                                        //If we've castled there's no need to continue checking pieces
+                                        break;
                                     }
                                 }
                             }
                         }
-
-                        ((King) piece).setFirstMoveFalse();
                     }
 
 
@@ -568,47 +617,16 @@ public class Main extends Application {
                         soundControl.playMove();
                     }
 
+                    //If we haven't promoted, update piece locations
                     if (!promoted) {
-                        //Update pieces location
-                        currentPieceLocations[piece.getCoordinates().getToken()] = piece;
+                        currentPieceLocations[movedPiece.getCoordinates().getToken()] = movedPiece;
                     }
 
                     //Draw new location to board
-                    piece.draw();
+                    movedPiece.draw();
 
-
-                    /*
-                    Check if the opponent king is now in checkmate
-                     */
-
-                    //First check if king is now in check
-                    if ( isKingInCheck(getOpponentColor(piece.color)) ) {
-                        //Temporarily sets checkmate to true
-                        checkmate = true;
-                        //Check if opponent can make any legal moves
-                        for ( Piece pieceToCheck : (piece.color == Piece.Color.WHITE) ? blackPieces : whitePieces ) {
-                            //Exit loop if mate
-                            if ( !checkmate ) break;
-
-                            //Find all potential moves
-                            potentialMoves = pieceToCheck.findPotentialMoves();
-
-                            oldCoors = pieceToCheck.getCoordinates();
-                            for ( Integer move : potentialMoves) {
-                                pieceToCheck.setCoordinates(move);
-                                //Check move
-                                if (isPotentialMoveLegal(pieceToCheck)) {
-                                    //Found legal move means no checkmate
-                                    checkmate = false;
-                                    break;
-                                }
-                            }
-                            pieceToCheck.setCoordinates(oldCoors.getxCoor(), oldCoors.getyCoor());
-                        }
-
-
-                        if ( checkmate ) System.out.println("Checkmate.");
-                    }
+                    //Check if player has put the opponent in checkmate
+                    inCheckmate(movedPiece.color);
                 }
             });
         }

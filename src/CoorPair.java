@@ -6,36 +6,36 @@ public class CoorPair {
     public CoorPair(double xCoor, double yCoor) {
         this.xCoor = xCoor;
         this.yCoor = yCoor;
-        token = hashCode();
+        token = tokenize();
     }
 
     public CoorPair(CoorPair coorPair) {
-        this.xCoor = coorPair.getxCoor();
-        this.yCoor = coorPair.getyCoor();
-        token = hashCode();
+        this.xCoor = coorPair.getXCoor();
+        this.yCoor = coorPair.getYCoor();
+        token = tokenize();
     }
 
     public void setCoordinates(double xCoor, double yCoor) {
         this.xCoor = xCoor;
         this.yCoor = yCoor;
-        token = hashCode();
+        token = tokenize();
     }
 
-    public void setxCoor(double xCoor) {
+    public void setXCoor(double xCoor) {
         this.xCoor = xCoor;
-        token = hashCode();
+        token = tokenize();
     }
 
-    public void setyCoor(double yCoor) {
+    public void setYCoor(double yCoor) {
         this.yCoor = yCoor;
-        token = hashCode();
+        token = tokenize();
     }
 
-    public double getxCoor() {
+    public double getXCoor() {
         return xCoor;
     }
 
-    public double getyCoor() {
+    public double getYCoor() {
         return yCoor;
     }
 
@@ -48,7 +48,7 @@ public class CoorPair {
     }
 
     /**
-     * Checks if a coordinate is in bounds of the board
+     * Checks if a coordinate pair is in bounds of the board
      *
      * @return if in bounds
      */
@@ -62,8 +62,7 @@ public class CoorPair {
         return "(" + xCoor + ", " + yCoor + ")";
     }
 
-    @Override
-    public int hashCode() {
+    private int tokenize() {
         int token;
         int x = (int) (xCoor / 60.0);
         int y = (int) (yCoor / 60.0);
@@ -72,7 +71,23 @@ public class CoorPair {
 
         return token;
     }
-    public static CoorPair reverseHash(Integer token) {
+
+    public static int tokenize(double oldX, double oldY) {
+        int token;
+        int x = (int) (oldX / 60.0);
+        int y = (int) (oldY / 60.0);
+
+        token = (y*8) + x;
+
+        return token;
+    }
+
+    /**
+     * Reverses a token back into a pair of coordinates
+     * @param token token to be reversed
+     * @return Coordinate pair
+     */
+    public static CoorPair reverseToken(Integer token) {
         int y;
         int x;
         y = (int)Math.floor(token / 8.0);

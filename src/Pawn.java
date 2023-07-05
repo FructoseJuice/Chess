@@ -9,9 +9,13 @@ public class Pawn extends Piece {
         super(PieceType.PAWN, color);
     }
 
+    /**
+     * Sets our first move flag to false, and checks if any opponent
+     * pawns can en-passant this piece.
+     */
     public void setFirstMoveFalse() {
         //Check if en-passantable
-        if ( firstMove ) {
+        if (firstMove) {
             if (this.color == Color.WHITE) {
                 if (this.getYCoor() == 240.0) {
                     enPassantable = true;
@@ -28,14 +32,15 @@ public class Pawn extends Piece {
 
     /**
      * Check if this move en-passants
-     * @param move move to check
+     *
+     * @param move       move to check
      * @param legalMoves running list of potentially legal moves
      */
     private void enPassantCheck(CoorPair move, ArrayList<Integer> legalMoves) {
-        if ( Main.currentPieceLocations[move.getToken()] != null ) {
-            if ( Main.currentPieceLocations[move.getToken()] instanceof Pawn
-                    && ((Pawn) Main.currentPieceLocations[move.getToken()]).enPassantable ) {
-                move.setyCoor(move.getyCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
+        if (Main.currentPieceLocations[move.getToken()] != null) {
+            if (Main.currentPieceLocations[move.getToken()] instanceof Pawn
+                    && ((Pawn) Main.currentPieceLocations[move.getToken()]).enPassantable) {
+                move.setYCoor(move.getYCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
                 legalMoves.add(move.getToken());
             }
         }
@@ -43,76 +48,51 @@ public class Pawn extends Piece {
 
     @Override
     public ArrayList<Integer> findPotentialMoves() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+        if (!this.getCoordinates().isInBounds()) return new ArrayList<>();
 
-        CoorPair newMove = new CoorPair(-1, -1);
+        int newMove;
+        int xMovement = 60;
+        int yMovement = (this.color == Color.BLACK) ? 60 : -60;
         ArrayList<Integer> legalMoves = new ArrayList<>();
 
-        //Checks if we can move forward
-        if (this.color == Color.BLACK) {
-            newMove.setCoordinates(this.getXCoor(), this.getYCoor() + 60);
-        } else {
-            newMove.setCoordinates(this.getXCoor(), this.getYCoor() - 60);
-        }
+        //Check if we can move forward
+        newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement);
 
         //If there isn't a piece in front of us, we can move forwards
-        if (Main.currentPieceLocations[newMove.getToken()] == null) {
-            legalMoves.add(newMove.getToken());
+        if (Main.currentPieceLocations[newMove] == null) {
+            legalMoves.add(newMove);
         }
 
         //Checks if we can move two spaces
         if (firstMove & legalMoves.size() != 0) {
-            if (this.color == Color.BLACK) {
-                legalMoves.add(new CoorPair(this.getXCoor(), this.getYCoor() + 120).getToken());
-            } else {
-                legalMoves.add(new CoorPair(this.getXCoor(), this.getYCoor() - 120).getToken());
+
+            newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement * 2);
+
+            //Check if any pieces are 2 squares in front of us
+            if (Main.currentPieceLocations[newMove] == null) {
+                legalMoves.add(newMove);
             }
         }
 
         //Check if we can en-passant
-        if (    ( this.color == Color.WHITE && this.getYCoor() == 180.0 )
-             || ( this.color == Color.BLACK && this.getYCoor() == 240.0 ) ) {
+        if ((this.color == Color.WHITE && this.getYCoor() == 180.0)
+                || (this.color == Color.BLACK && this.getYCoor() == 240.0)) {
 
-                newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor());
-                enPassantCheck(newMove, legalMoves);
-
-                newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor());
-                enPassantCheck(newMove, legalMoves);
+            enPassantCheck(new CoorPair(this.getXCoor() - 60, this.getYCoor()), legalMoves);
+            enPassantCheck(new CoorPair(this.getXCoor() + 60, this.getYCoor()), legalMoves);
         }
 
-        //Checks if there's a piece to our diagonals
-        if (this.color == Color.BLACK) {
+        // Checks if there's a piece to our diagonals
+        // Checks left diagonal
+        int leftDiagonal = CoorPair.tokenize(this.getXCoor() - xMovement, this.getYCoor() + yMovement);
+        if (IsOpponentPiece(leftDiagonal)) {
+            legalMoves.add(leftDiagonal);
+        }
 
-            //Checks left diagonal (up left)
-            newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations[newMove.getToken()] != null &&
-                    Main.currentPieceLocations[newMove.getToken()].color == Color.WHITE) {
-
-                legalMoves.add(newMove.getToken());
-            }
-
-            //Checks right diagonal (up right)
-            newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() + 60);
-            if (Main.currentPieceLocations[newMove.getToken()] != null &&
-                    Main.currentPieceLocations[newMove.getToken()].color == Color.WHITE) {
-                legalMoves.add(newMove.getToken());
-            }
-
-        } else {
-
-            //Checks left diagonal (down left)
-            newMove.setCoordinates(this.getXCoor() - 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations[newMove.getToken()] != null &&
-                    Main.currentPieceLocations[newMove.getToken()].color == Color.BLACK) {
-                legalMoves.add(newMove.getToken());
-            }
-
-            //Checks right diagonal (down right)
-            newMove.setCoordinates(this.getXCoor() + 60, this.getYCoor() - 60);
-            if (Main.currentPieceLocations[newMove.getToken()] != null &&
-                    Main.currentPieceLocations[newMove.getToken()].color == Color.BLACK) {
-                legalMoves.add(newMove.getToken());
-            }
+        // Checks right diagonal
+        int rightDiagonal = CoorPair.tokenize(this.getXCoor() + xMovement, this.getYCoor() + yMovement);
+        if (IsOpponentPiece(rightDiagonal)) {
+            legalMoves.add(rightDiagonal);
         }
 
         return legalMoves;
@@ -124,17 +104,15 @@ public class Pawn extends Piece {
      */
     @Override
     public ArrayList<Integer> movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+        if (!this.getCoordinates().isInBounds()) return new ArrayList<>();
 
         ArrayList<Integer> movesForCheck = new ArrayList<>();
+        int yMovement = (this.color == Color.BLACK) ? 60 : -60;
 
-        if (this.color == Color.BLACK) {
-            movesForCheck.add(new CoorPair(this.getXCoor() - 60, this.getYCoor() + 60).getToken());
-            movesForCheck.add(new CoorPair(this.getXCoor() + 60, this.getYCoor() + 60).getToken());
-        } else {
-            movesForCheck.add(new CoorPair(this.getXCoor() - 60, this.getYCoor() - 60).getToken());
-            movesForCheck.add(new CoorPair(this.getXCoor() + 60, this.getYCoor() - 60).getToken());
-        }
+        //Check each diagonal
+        movesForCheck.add(CoorPair.tokenize(this.getXCoor() - 60, this.getYCoor() + yMovement));
+        movesForCheck.add(CoorPair.tokenize(this.getXCoor() + 60, this.getYCoor() + yMovement));
+
         return movesForCheck;
     }
 }

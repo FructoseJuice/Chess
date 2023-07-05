@@ -52,13 +52,13 @@ public abstract class Piece {
     }
 
     /**
-     * Required for all piece classes to override this method
+     * Required for all piece classes to override this method.
      * Finds the potential moves that this piece can take
      */
     public abstract ArrayList<Integer> findPotentialMoves();
 
     /**
-     * Required for all piece classes to override this method
+     * Required for all piece classes to override this method.
      * Finds the potential moves that this piece can take to put a king in check
      * Includes protecting own pieces.
      */
@@ -73,11 +73,11 @@ public abstract class Piece {
     }
 
     public void setCoordinates(CoorPair newCoors) {
-        coorPair = new CoorPair(newCoors.getxCoor(), newCoors.getyCoor());
+        coorPair = new CoorPair(newCoors.getXCoor(), newCoors.getYCoor());
     }
 
     public void setCoordinates(Integer coordinateToken) {
-        coorPair = CoorPair.reverseHash(coordinateToken);
+        coorPair = CoorPair.reverseToken(coordinateToken);
     }
 
     //Returns in format:
@@ -87,24 +87,24 @@ public abstract class Piece {
     }
 
     public double getXCoor() {
-        return coorPair.getxCoor();
+        return coorPair.getXCoor();
     }
 
     public double getYCoor() {
-        return coorPair.getyCoor();
+        return coorPair.getYCoor();
     }
 
     public void setXCoor(double XCoor) {
-        coorPair.setxCoor(XCoor);
+        coorPair.setXCoor(XCoor);
     }
 
     public void setYCoor(double YCoor) {
-        coorPair.setyCoor(YCoor);
+        coorPair.setYCoor(YCoor);
     }
 
     public void draw() {
-        pieceObject.setLayoutX(coorPair.getxCoor());
-        pieceObject.setLayoutY(coorPair.getyCoor());
+        pieceObject.setLayoutX(coorPair.getXCoor());
+        pieceObject.setLayoutY(coorPair.getYCoor());
     }
 
     /**
@@ -114,30 +114,30 @@ public abstract class Piece {
         int quotient;
 
         //Finding closest x coordinate
-        int xCoor = (int) coorPair.getxCoor();
+        int xCoor = (int) coorPair.getXCoor();
 
         if (xCoor < 30) {
-            coorPair.setxCoor(0);
+            coorPair.setXCoor(0);
         } else {
             quotient = Math.floorDiv(xCoor, 60);
             //Find remainder and determine closest square
             if (xCoor % 60 >= 30) quotient++;
 
-            coorPair.setxCoor(quotient * 60.0);
+            coorPair.setXCoor(quotient * 60.0);
         }
 
 
         //Finding closest y coordinate
-        int yCoor = (int) coorPair.getyCoor();
+        int yCoor = (int) coorPair.getYCoor();
 
         if ( yCoor < 30 ) {
-            coorPair.setyCoor(0);
+            coorPair.setYCoor(0);
         } else {
             quotient = Math.floorDiv(yCoor, 60);
 
             if (yCoor % 60 >= 30) quotient++;
 
-            coorPair.setyCoor(quotient * 60.0);
+            coorPair.setYCoor(quotient * 60.0);
         }
     }
 
@@ -149,92 +149,45 @@ public abstract class Piece {
      * @return list of hashed potential moves in diagonal directions
      */
     public ArrayList<Integer> findPotentialDiagonalMoves() {
-        CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<Integer> legalMoves = new ArrayList<>();
 
-        boolean canMoveUpRight = true;
-        boolean canMoveUpLeft = true;
-        boolean canMoveDownLeft = true;
-        boolean canMoveDownRight = true;
+        int[][] directions = {
+                {1, -1},  // up-right
+                {-1, -1}, // up-left
+                {-1, 1},  // down-left
+                {1, 1}    // down-right
+        };
 
-        for (int i = 1; i < 8; i++) {
+        for (int[] direction : directions) {
+            int dx = direction[0]; //X coordinate movement
+            int dy = direction[1]; //Y coordinate movement
 
-            //Checks diagonal to the up -> right
-            if (canMoveUpRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() - (i * 60));
+            for (int j = 1; j < 8; j++) {
+                int newX = (int) (this.getXCoor() + (j * 60 * dx));
+                int newY = (int) (this.getYCoor() + (j * 60 * dy));
 
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveUpRight = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveUpRight = false;
+                CoorPair newMove = new CoorPair(newX, newY);
+
+                //Check if move is in bounds
+                if (!newMove.isInBounds()) {
+                    break;
                 }
-            }
 
+                int newMoveToken = newMove.getToken();
+                Piece pieceAtLocation = Main.currentPieceLocations[newMoveToken];
 
-            //Checks diagonal to the up -> left
-            if (canMoveUpLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() - (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveUpLeft = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
+                //Check if there is a piece at this location
+                if (pieceAtLocation != null) {
+                    //Check if this piece is of the opposite color
+                    if (pieceAtLocation.color != this.color) {
+                        legalMoves.add(newMoveToken);
                     }
-                } else {
-                    canMoveUpLeft = false;
+                    break;
                 }
-            }
 
-
-            //Checks diagonal to the down -> left
-            if (canMoveDownLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveDownLeft = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveDownLeft = false;
-                }
-            }
-
-
-            //Checks diagonal to the down -> right
-            if (canMoveDownRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveDownRight = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveDownRight = false;
-                }
+                legalMoves.add(newMoveToken);
             }
         }
-
 
         return legalMoves;
     }
@@ -249,88 +202,38 @@ public abstract class Piece {
         CoorPair newMove = new CoorPair(-1, -1);
         ArrayList<Integer> legalMoves = new ArrayList<>();
 
-        boolean canMoveRight = true;
-        boolean canMoveLeft = true;
-        boolean canMoveUp = true;
-        boolean canMoveDown = true;
+        int[][] directions = {
+                {1, 0},  //Right movement
+                {-1, 0}, //Left movement
+                {0, -1}, //Up movement
+                {0, 1}   //Down movement
+        };
 
-        for (int i = 1; i < 8; i++) {
+        for (int[] direction : directions) {
+            int dx = direction[0]; //X coordinate movement
+            int dy = direction[1]; //Y coordinate movement
 
-            //Checks right horizontal movement
-            if (canMoveRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor());
+            for (int i = 1; i < 8; i++) {
+                newMove.setCoordinates(this.getXCoor() + (i * dx * 60), this.getYCoor() + (i * dy * 60));
 
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveRight = false;
-                    } else {
+                if (!newMove.isInBounds()) {
+                    break;  // Stop checking this direction if move is out of bounds
+                }
+
+                if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                    if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
                         legalMoves.add(newMove.getToken());
                     }
-                } else {
-                    canMoveRight = false;
+                    break;  // Stop checking this direction if piece is encountered
                 }
-            }
 
-            //Checks left horizontal movement
-            if (canMoveLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor());
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveLeft = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveLeft = false;
-                }
-            }
-
-            //Checks for up movement
-            if (canMoveUp) {
-                newMove.setCoordinates(this.getXCoor(), this.getYCoor() - (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveUp = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveUp = false;
-                }
-            }
-
-            //Checks for down movement
-            if (canMoveDown) {
-                newMove.setCoordinates(this.getXCoor(), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                            legalMoves.add(newMove.getToken());
-                        }
-                        canMoveDown = false;
-                    } else {
-                        legalMoves.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveDown = false;
-                }
+                legalMoves.add(newMove.getToken());
             }
         }
 
         return legalMoves;
     }
+
 
     /**
      * Used for finding all potential moves for horizontal moving pieces
@@ -340,91 +243,44 @@ public abstract class Piece {
      */
     public ArrayList<Integer> horizontalForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<Integer> movesForCheck = new ArrayList<>();
+        ArrayList<Integer> legalMoves = new ArrayList<>();
 
-        boolean canMoveRight = true;
-        boolean canMoveLeft = true;
-        boolean canMoveUp = true;
-        boolean canMoveDown = true;
+        int[][] directions = {
+                {1, 0},  //Right movement
+                {-1, 0}, //Left movement
+                {0, -1}, //Up movement
+                {0, 1}   //Down movement
+        };
 
-        for (int i = 1; i < 8; i++) {
+        for (int[] direction : directions) {
+            int dx = direction[0]; //X coordinate movement
+            int dy = direction[1]; //Y coordinate movement
 
-            //Checks right horizontal movement
-            if (canMoveRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor());
+            for (int i = 1; i < 8; i++) {
+                newMove.setCoordinates(this.getXCoor() + (i * dx * 60), this.getYCoor() + (i * dy * 60));
 
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-
-                        }
-                        canMoveRight = ifPieceKing(newMove);
-
-                    } else {
-                        movesForCheck.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveRight = false;
+                if (!newMove.isInBounds()) {
+                    break;  // Stop checking this direction if move is out of bounds
                 }
-            }
 
-            //Checks left horizontal movement
-            if (canMoveLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor());
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveLeft = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
+                if (Main.currentPieceLocations[newMove.getToken()] != null) {
+                    if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
+                        legalMoves.add(newMove.getToken());
                     }
+                    break;  // Stop checking this direction if piece is encountered
                 } else {
-                    canMoveLeft = false;
-                }
-            }
-
-            //Checks for up movement
-            if (canMoveUp) {
-                newMove.setCoordinates(this.getXCoor(), this.getYCoor() - (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveUp = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
+                    //If we encountered the opponent king, keep adding moves in this direction
+                    if (pieceOpponentKing(newMove.getToken())) {
+                        legalMoves.add(newMove.getToken());
+                        continue;
                     }
-                } else {
-                    canMoveUp = false;
                 }
-            }
 
-            //Checks for down movement
-            if (canMoveDown) {
-                newMove.setCoordinates(this.getXCoor(), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveDown = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveDown = false;
-                }
+                legalMoves.add(newMove.getToken());
             }
         }
 
-        return movesForCheck;
+        return legalMoves;
     }
 
     /**
@@ -434,95 +290,53 @@ public abstract class Piece {
      * @return All hashed potential moves for calculating check
      */
     public ArrayList<Integer> diagonalForCheck() {
-        CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<Integer> movesForCheck = new ArrayList<>();
+        ArrayList<Integer> legalMoves = new ArrayList<>();
 
-        boolean canMoveUpRight = true;
-        boolean canMoveUpLeft = true;
-        boolean canMoveDownLeft = true;
-        boolean canMoveDownRight = true;
+        int[][] directions = {
+                {1, -1},  // up-right
+                {-1, -1}, // up-left
+                {-1, 1},  // down-left
+                {1, 1}    // down-right
+        };
 
-        for (int i = 1; i < 8; i++) {
+        for (int[] direction : directions) {
+            int xDirection = direction[0];
+            int yDirection = direction[1];
 
-            //Checks diagonal to the up -> right
-            if (canMoveUpRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() - (i * 60));
+            for (int j = 1; j < 8; j++) {
+                int newX = (int) (this.getXCoor() + (j * 60 * xDirection));
+                int newY = (int) (this.getYCoor() + (j * 60 * yDirection));
 
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveUpRight = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveUpRight = false;
+                CoorPair newMove = new CoorPair(newX, newY);
+
+                //Check if move is in bounds
+                if (!newMove.isInBounds()) {
+                    break;
                 }
-            }
 
+                int newMoveToken = newMove.getToken();
+                Piece pieceAtLocation = Main.currentPieceLocations[newMoveToken];
 
-            //Checks diagonal to the up -> left
-            if (canMoveUpLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() - (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveUpLeft = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
+                //Check if there is a piece at this location
+                if (pieceAtLocation != null) {
+                    //Check if this piece is of the opposite color
+                    if (pieceAtLocation.color == this.color) {
+                        legalMoves.add(newMoveToken);
                     }
+                    break;
                 } else {
-                    canMoveUpLeft = false;
-                }
-            }
-
-
-            //Checks diagonal to the down -> left
-            if (canMoveDownLeft) {
-                newMove.setCoordinates(this.getXCoor() - (i * 60), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveDownLeft = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
+                    //If encountered enemy king, keep adding moves in this direction
+                    if ( pieceOpponentKing(newMoveToken)) {
+                        legalMoves.add(newMoveToken);
+                        continue;
                     }
-                } else {
-                    canMoveDownLeft = false;
                 }
-            }
 
-
-            //Checks diagonal to the down -> right
-            if (canMoveDownRight) {
-                newMove.setCoordinates(this.getXCoor() + (i * 60), this.getYCoor() + (i * 60));
-
-                if (newMove.isInBounds()) {
-                    if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                        if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                            movesForCheck.add(newMove.getToken());
-                        }
-                        canMoveDownRight = ifPieceKing(newMove);
-                    } else {
-                        movesForCheck.add(newMove.getToken());
-                    }
-                } else {
-                    canMoveDownRight = false;
-                }
+                legalMoves.add(newMoveToken);
             }
         }
 
-
-        return movesForCheck;
-
+        return legalMoves;
     }
 
     /**
@@ -531,8 +345,22 @@ public abstract class Piece {
      * If they encounter a king on their movement path, we find the next potential move
      * @return if they can continue moving in this direction
      */
-    private boolean ifPieceKing(CoorPair newMove) {
+    private boolean pieceOpponentKing(Integer newMove) {
         //If the piece is the king, we have to keep adding moves in this direction
-        return Main.currentPieceLocations[newMove.getToken()] instanceof King;
+        if (Main.currentPieceLocations[newMove] instanceof King) {
+            return (Main.currentPieceLocations[newMove].color != this.color);
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if there is a piece at specified coordinates @coordinateToken, and if it's of the opposite color
+     * @param coordinateToken Coordinates to check
+     * @return If opponent piece at coordinates
+     */
+    public boolean IsOpponentPiece(int coordinateToken) {
+        return (Main.currentPieceLocations[coordinateToken] != null
+                && Main.currentPieceLocations[coordinateToken].color != this.color);
     }
 }
