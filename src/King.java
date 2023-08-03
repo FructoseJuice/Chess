@@ -1,6 +1,4 @@
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashSet;
 
 public class King extends Piece {
     private boolean firstMove = true;
@@ -14,16 +12,20 @@ public class King extends Piece {
     }
 
     @Override
-    public ArrayList<Integer> findPotentialMoves() {
+    public Long findPotentialMoves() {
         //Gets the potential legal moves this king can make
-        ArrayList<Integer> legalMoves = getPotentialMoves();
+        Long legalMovesBitBoard = getPotentialMoves();
 
         //Gets all possible moves of the opponent
-        HashSet<Integer> opponentMoves = spacesOpponentCanMove();
+        Long opponentMoves = spacesOpponentCanMove();
 
         //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
         //Puts the king in check
-        legalMoves.removeIf(opponentMoves::contains);
+
+        long illegalMovesBitMask; //Mask for moves to prune away
+        //Prune away illegal moves
+        illegalMovesBitMask = legalMovesBitBoard & opponentMoves;
+        legalMovesBitBoard ^= illegalMovesBitMask;
 
         //Checks if a king can castle
         //Can only castle if it's our first move, and we're not in check
@@ -49,30 +51,30 @@ public class King extends Piece {
             we're not castling through, or into check.
              */
             if (rightRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) &
+                    ((opponentMoves & new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()) == 0) &
+                    ((opponentMoves & new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) == 0) &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()] == null) {
-                legalMoves.add(new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken());
+                legalMovesBitBoard |= 1L<<new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken();
             }
 
             if (leftRookCanCastle &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) &
-                    !opponentMoves.contains(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) &
+                    ((opponentMoves & new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()) == 0) &
+                    ((opponentMoves & new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()) == 0) &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken()] == null) {
-                legalMoves.add(new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken());
+                legalMovesBitBoard |= 1L<<new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken();
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     @Override
-    public ArrayList<Integer> movesForCheck() {
-        Integer newMove;
-        ArrayList<Integer> potentialMoves = new ArrayList<>();
+    public Long movesForCheck() {
+        int newMove;
+        long potentialMovesBitBoard = 0L;
 
         //Possible movements the king can make
         int[][] movements = {
@@ -84,11 +86,11 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMoves.add(newMove);
+                potentialMovesBitBoard |= 1L<<newMove;
             }
         }
 
-        return potentialMoves;
+        return potentialMovesBitBoard;
     }
 
     private boolean checkPotentialMoveForCheck(Integer newMove) {
@@ -105,11 +107,11 @@ public class King extends Piece {
      * Finds the POTENTIAL moves that a king can take
      * Includes logic for taking pieces, and spaces with same color piece on them
      *
-     * @return List of potential moves
+     * @return bitboard of potential moves
      */
-    public ArrayList<Integer> getPotentialMoves() {
-        Integer newMove;
-        ArrayList<Integer> potentialMoves = new ArrayList<>();
+    public Long getPotentialMoves() {
+        int newMove;
+        long potentialMovesBitBoard = 0L;
 
         //Possible movements the king can make
         int[][] movements = {
@@ -121,11 +123,11 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkNewMove(newMove)) {
-                potentialMoves.add(newMove);
+                potentialMovesBitBoard |= 1L<<newMove;
             }
         }
 
-        return potentialMoves;
+        return potentialMovesBitBoard;
     }
 
     /**
@@ -150,13 +152,13 @@ public class King extends Piece {
      *
      * @return Hashed Coordinates of all moves
      */
-    public HashSet<Integer> spacesOpponentCanMove() {
-        HashSet<Integer> hashedCoordinates = new HashSet<>();
+    public Long spacesOpponentCanMove() {
+        long opponentMovesBitBoard = 0L;
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
-            hashedCoordinates.addAll(piece.movesForCheck());
+            opponentMovesBitBoard |= piece.movesForCheck();
         }
 
-        return hashedCoordinates;
+        return opponentMovesBitBoard;
     }
 }

@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
 public class Queen extends Piece {
     public Queen(Color color) throws FileNotFoundException {
@@ -7,29 +6,29 @@ public class Queen extends Piece {
     }
 
     @Override
-    public ArrayList<Integer> findPotentialMoves() {
+    public Long findPotentialMoves() {
         //Make sure we're in bounds of board before calculations
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+        if ( !this.getCoordinates().isInBounds() ) return 0L;
 
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+        Long legalMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves
-        legalMoves.addAll(findPotentialDiagonalMoves());
-        legalMoves.addAll(findPotentialHorizontalMoves());
+        legalMovesBitBoard |= findPotentialDiagonalMoves();
+        legalMovesBitBoard |= findPotentialHorizontalMoves();
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     @Override
-    public ArrayList<Integer> movesForCheck() {
+    public Long movesForCheck() {
         //Make sure we're in bounds of board before calculations
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+        if ( !this.getCoordinates().isInBounds() ) return 0L;
 
-        ArrayList<Integer> potentialMoves = new ArrayList<>();
+        Long potentialMoves = 0L;
 
         //Find all diagonal and horizontal moves, including moves protecting pieces
-        potentialMoves.addAll(diagonalForCheck());
-        potentialMoves.addAll(horizontalForCheck());
+        potentialMoves |= diagonalForCheck();
+        potentialMoves |= horizontalForCheck();
 
         return potentialMoves;
     }

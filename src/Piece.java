@@ -3,7 +3,6 @@ import javafx.scene.image.ImageView;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
 /**
  * Represents all pieces on the chess board
@@ -55,14 +54,14 @@ public abstract class Piece {
      * Required for all piece classes to override this method.
      * Finds the potential moves that this piece can take
      */
-    public abstract ArrayList<Integer> findPotentialMoves();
+    public abstract Long findPotentialMoves();
 
     /**
      * Required for all piece classes to override this method.
      * Finds the potential moves that this piece can take to put a king in check
      * Includes protecting own pieces.
      */
-    public abstract ArrayList<Integer> movesForCheck();
+    public abstract Long movesForCheck();
 
     public void setCoordinates(double xCoor, double yCoor) {
         //Set new coordinates
@@ -146,10 +145,10 @@ public abstract class Piece {
      * Finds all of a pieces potential moves in all diagonal directions
      * FOR USE BY BISHOPS AND QUEENS
      *
-     * @return list of hashed potential moves in diagonal directions
+     * @return long of hashed potential moves in diagonal directions
      */
-    public ArrayList<Integer> findPotentialDiagonalMoves() {
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+    public Long findPotentialDiagonalMoves() {
+        long legalMovesBitBoard = 0L;
 
         int[][] directions = {
                 {1, -1},  // up-right
@@ -180,27 +179,27 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color != this.color) {
-                        legalMoves.add(newMoveToken);
+                        legalMovesBitBoard |= 1L<<newMoveToken;
                     }
                     break;
                 }
 
-                legalMoves.add(newMoveToken);
+                legalMovesBitBoard |= 1L<<newMoveToken;
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     /**
      * Finds all of a pieces potential moves in all horizontal directions
      * FOR USE BY ROOKS AND QUEENS
      *
-     * @return list of hashed potential moves in horizontal directions
+     * @return long of hashed potential moves in horizontal directions
      */
-    public ArrayList<Integer> findPotentialHorizontalMoves() {
+    public Long findPotentialHorizontalMoves() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+        long legalMovesBitBoard = 0L;
 
         int[][] directions = {
                 {1, 0},  //Right movement
@@ -222,16 +221,16 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                        legalMoves.add(newMove.getToken());
+                        legalMovesBitBoard |= 1L<<newMove.getToken();
                     }
                     break;  // Stop checking this direction if piece is encountered
                 }
 
-                legalMoves.add(newMove.getToken());
+                legalMovesBitBoard |= 1L<<newMove.getToken();
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
 
@@ -239,11 +238,11 @@ public abstract class Piece {
      * Used for finding all potential moves for horizontal moving pieces
      * This includes pieces it's protecting
      *
-     * @return Hashed potential moves of piece for calculating check
+     * @return bitboard of potential moves of piece for calculating check
      */
-    public ArrayList<Integer> horizontalForCheck() {
+    public Long horizontalForCheck() {
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+        long legalMovesBitBoard = 0L;
 
         int[][] directions = {
                 {1, 0},  //Right movement
@@ -265,22 +264,22 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                        legalMoves.add(newMove.getToken());
+                        legalMovesBitBoard |= 1L<<newMove.getToken();
                     }
                     break;  // Stop checking this direction if piece is encountered
                 } else {
                     //If we encountered the opponent king, keep adding moves in this direction
                     if (pieceOpponentKing(newMove.getToken())) {
-                        legalMoves.add(newMove.getToken());
+                        legalMovesBitBoard |= 1L<<newMove.getToken();
                         continue;
                     }
                 }
 
-                legalMoves.add(newMove.getToken());
+                legalMovesBitBoard |= 1L<<newMove.getToken();
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     /**
@@ -289,8 +288,8 @@ public abstract class Piece {
      *
      * @return All hashed potential moves for calculating check
      */
-    public ArrayList<Integer> diagonalForCheck() {
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+    public Long diagonalForCheck() {
+        long legalMovesBitBoard = 0L;
 
         int[][] directions = {
                 {1, -1},  // up-right
@@ -321,22 +320,22 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color == this.color) {
-                        legalMoves.add(newMoveToken);
+                        legalMovesBitBoard |= 1L<<newMoveToken;
                     }
                     break;
                 } else {
                     //If encountered enemy king, keep adding moves in this direction
                     if ( pieceOpponentKing(newMoveToken)) {
-                        legalMoves.add(newMoveToken);
+                        legalMovesBitBoard |= 1L<<newMoveToken;
                         continue;
                     }
                 }
 
-                legalMoves.add(newMoveToken);
+                legalMovesBitBoard |= 1L<<newMoveToken;
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     /**

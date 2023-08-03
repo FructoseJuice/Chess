@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
 public class Pawn extends Piece {
     private boolean firstMove = true;
@@ -36,41 +35,44 @@ public class Pawn extends Piece {
      * @param move       move to check
      * @param legalMoves running list of potentially legal moves
      */
-    private void enPassantCheck(CoorPair move, ArrayList<Integer> legalMoves) {
+    private Long enPassantCheck(CoorPair move, Long legalMoves) {
         if (Main.currentPieceLocations[move.getToken()] != null) {
             if (Main.currentPieceLocations[move.getToken()] instanceof Pawn
                     && ((Pawn) Main.currentPieceLocations[move.getToken()]).enPassantable) {
                 move.setYCoor(move.getYCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
-                legalMoves.add(move.getToken());
+                legalMoves |= 1L<<move.getToken();
             }
         }
+
+        return legalMoves;
     }
 
     @Override
-    public ArrayList<Integer> findPotentialMoves() {
-        if (!this.getCoordinates().isInBounds()) return new ArrayList<>();
+    public Long findPotentialMoves() {
+        if (!this.getCoordinates().isInBounds()) return 0L;
 
         int newMove;
         int xMovement = 60;
         int yMovement = (this.color == Color.BLACK) ? 60 : -60;
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+        long legalMovesBitBoard = 0L;
+        long bitMask = 1L;
 
         //Check if we can move forward
         newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement);
 
         //If there isn't a piece in front of us, we can move forwards
         if (Main.currentPieceLocations[newMove] == null) {
-            legalMoves.add(newMove);
+            legalMovesBitBoard |= bitMask<<newMove;
         }
 
         //Checks if we can move two spaces
-        if (firstMove & legalMoves.size() != 0) {
+        if (firstMove & (legalMovesBitBoard != 0)) {
 
             newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement * 2);
 
             //Check if any pieces are 2 squares in front of us
             if (Main.currentPieceLocations[newMove] == null) {
-                legalMoves.add(newMove);
+                legalMovesBitBoard |= bitMask<<newMove;
             }
         }
 
@@ -78,24 +80,31 @@ public class Pawn extends Piece {
         if ((this.color == Color.WHITE && this.getYCoor() == 180.0)
                 || (this.color == Color.BLACK && this.getYCoor() == 240.0)) {
 
-            enPassantCheck(new CoorPair(this.getXCoor() - 60, this.getYCoor()), legalMoves);
-            enPassantCheck(new CoorPair(this.getXCoor() + 60, this.getYCoor()), legalMoves);
+            legalMovesBitBoard |= enPassantCheck(new CoorPair(this.getXCoor() - 60, this.getYCoor()), legalMovesBitBoard);
+            legalMovesBitBoard |= enPassantCheck(new CoorPair(this.getXCoor() + 60, this.getYCoor()), legalMovesBitBoard);
         }
 
         // Checks if there's a piece to our diagonals
         // Checks left diagonal
-        int leftDiagonal = CoorPair.tokenize(this.getXCoor() - xMovement, this.getYCoor() + yMovement);
-        if (IsOpponentPiece(leftDiagonal)) {
-            legalMoves.add(leftDiagonal);
+        CoorPair diagonalMove;
+        diagonalMove = new CoorPair(this.getXCoor() - xMovement, this.getYCoor() + yMovement);
+        if ( diagonalMove.isInBounds() ) {
+            int leftDiagonal = diagonalMove.getToken();
+            if (IsOpponentPiece(leftDiagonal)) {
+                legalMovesBitBoard |= bitMask<<leftDiagonal;
+            }
         }
 
         // Checks right diagonal
-        int rightDiagonal = CoorPair.tokenize(this.getXCoor() + xMovement, this.getYCoor() + yMovement);
-        if (IsOpponentPiece(rightDiagonal)) {
-            legalMoves.add(rightDiagonal);
+        diagonalMove = new CoorPair(this.getXCoor() + xMovement, this.getYCoor() + yMovement);
+        if ( diagonalMove.isInBounds() ) {
+            int rightDiagonal = diagonalMove.getToken();
+            if (IsOpponentPiece(rightDiagonal)) {
+                legalMovesBitBoard |= bitMask<<rightDiagonal;
+            }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     /**
@@ -103,16 +112,24 @@ public class Pawn extends Piece {
      * Used by king for checking positions with check
      */
     @Override
-    public ArrayList<Integer> movesForCheck() {
-        if (!this.getCoordinates().isInBounds()) return new ArrayList<>();
+    public Long movesForCheck() {
+        if (!this.getCoordinates().isInBounds()) return 0L;
 
-        ArrayList<Integer> movesForCheck = new ArrayList<>();
+        long movesForCheckBitBoard = 0L;
         int yMovement = (this.color == Color.BLACK) ? 60 : -60;
 
         //Check each diagonal
-        movesForCheck.add(CoorPair.tokenize(this.getXCoor() - 60, this.getYCoor() + yMovement));
-        movesForCheck.add(CoorPair.tokenize(this.getXCoor() + 60, this.getYCoor() + yMovement));
+        CoorPair diagonalMove;
+        diagonalMove = new CoorPair(this.getXCoor() - 60, this.getYCoor() + yMovement);
+        if ( diagonalMove.isInBounds() ) {
+            movesForCheckBitBoard |= 1L<<diagonalMove.getToken();
+        }
 
-        return movesForCheck;
+        diagonalMove = new CoorPair(this.getXCoor() + 60, this.getYCoor() + yMovement);
+        if ( diagonalMove.isInBounds() ) {
+            movesForCheckBitBoard |= 1L<<diagonalMove.getToken();
+        }
+
+        return movesForCheckBitBoard;
     }
 }

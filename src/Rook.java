@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
 public class Rook extends Piece {
     private boolean firstMove = true;
@@ -17,15 +16,15 @@ public class Rook extends Piece {
     }
 
     @Override
-    public ArrayList<Integer> findPotentialMoves() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+    public Long findPotentialMoves() {
+        if ( !this.getCoordinates().isInBounds() ) return 0L;
 
         return findPotentialHorizontalMoves();
     }
 
     @Override
-    public ArrayList<Integer> movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+    public Long movesForCheck() {
+        if ( !this.getCoordinates().isInBounds() ) return 0L;
 
         return horizontalForCheck();
     }

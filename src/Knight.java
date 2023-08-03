@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
 public class Knight extends Piece {
     public Knight(Color color) throws FileNotFoundException {
@@ -7,12 +6,10 @@ public class Knight extends Piece {
     }
 
     @Override
-    public ArrayList<Integer> findPotentialMoves() {
-        if (!this.getCoordinates().isInBounds()) {
-            return new ArrayList<>();
-        }
+    public Long findPotentialMoves() {
+        if (!this.getCoordinates().isInBounds()) return 0L;
 
-        ArrayList<Integer> legalMoves = new ArrayList<>();
+        long legalMovesBitBoard = 0L;
         CoorPair newMove = new CoorPair(-1, -1);
 
         int[][] movements = {
@@ -26,11 +23,11 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkNewMove(newMove)) {
-                legalMoves.add(newMove.getToken());
+                legalMovesBitBoard |= 1L<<newMove.getToken();
             }
         }
 
-        return legalMoves;
+        return legalMovesBitBoard;
     }
 
     /**
@@ -52,14 +49,14 @@ public class Knight extends Piece {
 
     /**
      * Check every move this knight can make, including those protecting their own pieces
-     * @return List of all possible moves
+     * @return bitboard of all possible moves
      */
     @Override
-    public ArrayList<Integer> movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return new ArrayList<>();
+    public Long movesForCheck() {
+        if ( !this.getCoordinates().isInBounds() ) return 0L;
 
         CoorPair newMove = new CoorPair(-1, -1);
-        ArrayList<Integer> potentialMoves = new ArrayList<>();
+        long potentialMovesBitBoard = 0L;
 
         int[][] movements = {
                 {60, -120}, {120, -60}, {-60, -120}, {-120, -60},
@@ -72,11 +69,11 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMoves.add(newMove.getToken());
+                potentialMovesBitBoard |= 1L<<newMove.getToken();
             }
         }
 
-        return potentialMoves;
+        return potentialMovesBitBoard;
     }
 
     /**

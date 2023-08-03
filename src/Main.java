@@ -28,6 +28,7 @@ public class Main extends Application {
 
     //Used for checking the location and color of all pieces on board
     //Integer represents token of coordinate pair
+    //Start squares from index 1
     public static Piece[] currentPieceLocations = new Piece[64];
 
     //Holds all pieces currently on the board
@@ -40,7 +41,7 @@ public class Main extends Application {
     //Saves a pieces old coordinates before being moved
     CoorPair oldCoors;
     //Saves the legal moves of a piece
-    ArrayList<Integer> potentialMoves = new ArrayList<>();
+    long potentialMovesBitBoard = 0L;
     //Logs the current player to move
     Piece.Color playerToMove = Piece.Color.WHITE;
     //If game is in checkmate status
@@ -174,6 +175,17 @@ public class Main extends Application {
         allPieces.addAll(extraPieces);
     }
 
+    public void printBitboard(long bitboard) {
+        for (int position = 0; position < 64; position++) {
+            long bitMask = 1L << position;
+            System.out.print(((bitboard & bitMask) != 0 ? "1" : "0") + " ");
+            if ((position + 1) % 8 == 0) {
+                System.out.println();
+            }
+        }
+        System.out.println();
+    }
+
 
     /**
      * Takes a players color and returns the opponents color.
@@ -203,11 +215,8 @@ public class Main extends Application {
         if (playerToMove != piece.color) return false;
 
         //Check if desired move is potentially legal
-        for (Integer potential : potentialMoves) {
-            if (piece.getCoordinates().getToken() == potential) {
-                isLegalMove = true;
-                break;
-            }
+        if ( (1L<<piece.getCoordinates().getToken() & potentialMovesBitBoard) > 0 ) {
+            isLegalMove = true;
         }
 
         if (isLegalMove) {
@@ -374,38 +383,40 @@ public class Main extends Application {
      * @return If king is in check
      */
     public static boolean isKingInCheck(Piece.Color color) {
-        Integer kingCoordinates = null;
+        Integer kingToken = null;
 
         //Grab this king's Coordinates
         if ( color == Piece.Color.WHITE ) {
             //Find king
             for ( Piece piece : whitePieces ) {
                 if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates().getToken();
+                    kingToken = piece.getCoordinates().getToken();
                 }
             }
         } else {
             for ( Piece piece : blackPieces ) {
                 if ( piece instanceof King ) {
-                    kingCoordinates = piece.getCoordinates().getToken();
+                    kingToken = piece.getCoordinates().getToken();
                 }
             }
         }
 
         //We will always find each king
-        assert kingCoordinates != null;
+        assert kingToken != null;
 
         //Check all the moves for the opponent
         for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
             if (piece.pieceType == Piece.PieceType.PAWN || piece.pieceType == Piece.PieceType.KING) {
                 //If piece is a pawn or king we need special logic
-                for ( Integer legalMove : piece.movesForCheck() ) {
-                    if (Objects.equals(legalMove, kingCoordinates)) return true;
+                if ( (piece.movesForCheck() & 1L<<kingToken) > 0 ) {
+                    return true;
                 }
+
             } else {
-                for ( Integer legalMove : piece.findPotentialMoves() ) {
-                    if (Objects.equals(legalMove, kingCoordinates)) return true;
+                if ( (piece.findPotentialMoves() & 1L<<kingToken) > 0 ) {
+                    return true;
                 }
+
             }
         }
 
@@ -428,23 +439,25 @@ public class Main extends Application {
                 if (!checkmate) break;
 
                 //Find all potential moves
-                potentialMoves = pieceToCheck.findPotentialMoves();
+                potentialMovesBitBoard = pieceToCheck.findPotentialMoves();
 
                 oldCoors = pieceToCheck.getCoordinates();
-                for (Integer move : potentialMoves) {
-                    pieceToCheck.setCoordinates(move);
-                    //Check move
-                    if (isPotentialMoveLegal(pieceToCheck)) {
-                        //Found legal move means no checkmate
-                        checkmate = false;
-                        break;
+
+                for ( int i = 0; i < 64; i++ ) {
+                    //Check all potential moves
+                    if ( (potentialMovesBitBoard & 1L<<i) > 0 ) {
+                        pieceToCheck.setCoordinates(i);
+
+                        if ( isPotentialMoveLegal(pieceToCheck)) {
+                            checkmate = false;
+                            break;
+                        }
                     }
                 }
 
                 //Restore coordinates of piece we're checking
                 pieceToCheck.setCoordinates(oldCoors.getXCoor(), oldCoors.getYCoor());
             }
-
 
             if (checkmate) System.out.println("Checkmate.");
         }
@@ -468,7 +481,7 @@ public class Main extends Application {
                 movedPiece.pieceObject.toFront();
 
                 //Find all potentially legal moves for chosen piece
-                potentialMoves = movedPiece.findPotentialMoves();
+                potentialMovesBitBoard = movedPiece.findPotentialMoves();
             });
 
             movedPiece.pieceObject.setOnMouseDragged(event -> {
@@ -493,6 +506,7 @@ public class Main extends Application {
                 boolean promoted = false;
                 boolean isLegalMove = false;
 
+                //printBitboard(potentialMovesBitBoard);
 
                 //Find the nearest space to the cursor
                 movedPiece.findNearestSpace();
