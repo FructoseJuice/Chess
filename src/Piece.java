@@ -1,3 +1,5 @@
+import Utils.BitBoard;
+import Utils.CoorPair;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -179,12 +181,12 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color != this.color) {
-                        legalMovesBitBoard |= 1L<<newMoveToken;
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
                     }
                     break;
                 }
 
-                legalMovesBitBoard |= 1L<<newMoveToken;
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
             }
         }
 
@@ -221,12 +223,12 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                        legalMovesBitBoard |= 1L<<newMove.getToken();
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
                 }
 
-                legalMovesBitBoard |= 1L<<newMove.getToken();
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -264,18 +266,18 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                        legalMovesBitBoard |= 1L<<newMove.getToken();
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
                 } else {
                     //If we encountered the opponent king, keep adding moves in this direction
                     if (pieceOpponentKing(newMove.getToken())) {
-                        legalMovesBitBoard |= 1L<<newMove.getToken();
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
                         continue;
                     }
                 }
 
-                legalMovesBitBoard |= 1L<<newMove.getToken();
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -320,18 +322,18 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color == this.color) {
-                        legalMovesBitBoard |= 1L<<newMoveToken;
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
                     }
                     break;
                 } else {
                     //If encountered enemy king, keep adding moves in this direction
                     if ( pieceOpponentKing(newMoveToken)) {
-                        legalMovesBitBoard |= 1L<<newMoveToken;
+                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
                         continue;
                     }
                 }
 
-                legalMovesBitBoard |= 1L<<newMoveToken;
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
             }
         }
 

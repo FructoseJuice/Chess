@@ -1,3 +1,5 @@
+package Utils;
+
 public class CoorPair {
     private double xCoor;
     private double yCoor;

@@ -1,3 +1,6 @@
+import Utils.BitBoard;
+import Utils.CoorPair;
+
 import java.io.FileNotFoundException;
 
 public class Pawn extends Piece {
@@ -40,7 +43,7 @@ public class Pawn extends Piece {
             if (Main.currentPieceLocations[move.getToken()] instanceof Pawn
                     && ((Pawn) Main.currentPieceLocations[move.getToken()]).enPassantable) {
                 move.setYCoor(move.getYCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
-                legalMoves |= 1L<<move.getToken();
+                legalMoves = BitBoard.addToken(legalMoves, move.getToken());
             }
         }
 
@@ -55,14 +58,13 @@ public class Pawn extends Piece {
         int xMovement = 60;
         int yMovement = (this.color == Color.BLACK) ? 60 : -60;
         long legalMovesBitBoard = 0L;
-        long bitMask = 1L;
 
         //Check if we can move forward
         newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement);
 
         //If there isn't a piece in front of us, we can move forwards
         if (Main.currentPieceLocations[newMove] == null) {
-            legalMovesBitBoard |= bitMask<<newMove;
+            legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove);
         }
 
         //Checks if we can move two spaces
@@ -72,7 +74,7 @@ public class Pawn extends Piece {
 
             //Check if any pieces are 2 squares in front of us
             if (Main.currentPieceLocations[newMove] == null) {
-                legalMovesBitBoard |= bitMask<<newMove;
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove);
             }
         }
 
@@ -91,7 +93,7 @@ public class Pawn extends Piece {
         if ( diagonalMove.isInBounds() ) {
             int leftDiagonal = diagonalMove.getToken();
             if (IsOpponentPiece(leftDiagonal)) {
-                legalMovesBitBoard |= bitMask<<leftDiagonal;
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, leftDiagonal);
             }
         }
 
@@ -100,7 +102,7 @@ public class Pawn extends Piece {
         if ( diagonalMove.isInBounds() ) {
             int rightDiagonal = diagonalMove.getToken();
             if (IsOpponentPiece(rightDiagonal)) {
-                legalMovesBitBoard |= bitMask<<rightDiagonal;
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, rightDiagonal);
             }
         }
 
@@ -122,12 +124,12 @@ public class Pawn extends Piece {
         CoorPair diagonalMove;
         diagonalMove = new CoorPair(this.getXCoor() - 60, this.getYCoor() + yMovement);
         if ( diagonalMove.isInBounds() ) {
-            movesForCheckBitBoard |= 1L<<diagonalMove.getToken();
+            movesForCheckBitBoard = BitBoard.addToken(movesForCheckBitBoard, diagonalMove.getToken());
         }
 
         diagonalMove = new CoorPair(this.getXCoor() + 60, this.getYCoor() + yMovement);
         if ( diagonalMove.isInBounds() ) {
-            movesForCheckBitBoard |= 1L<<diagonalMove.getToken();
+            movesForCheckBitBoard = BitBoard.addToken(movesForCheckBitBoard, diagonalMove.getToken());
         }
 
         return movesForCheckBitBoard;

@@ -1,3 +1,5 @@
+import Utils.BitBoard;
+
 import java.io.FileNotFoundException;
 
 public class Queen extends Piece {
@@ -10,11 +12,11 @@ public class Queen extends Piece {
         //Make sure we're in bounds of board before calculations
         if ( !this.getCoordinates().isInBounds() ) return 0L;
 
-        Long legalMovesBitBoard = 0L;
+        long legalMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves
-        legalMovesBitBoard |= findPotentialDiagonalMoves();
-        legalMovesBitBoard |= findPotentialHorizontalMoves();
+        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, findPotentialDiagonalMoves());
+        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, findPotentialHorizontalMoves());
 
         return legalMovesBitBoard;
     }
@@ -24,12 +26,12 @@ public class Queen extends Piece {
         //Make sure we're in bounds of board before calculations
         if ( !this.getCoordinates().isInBounds() ) return 0L;
 
-        Long potentialMoves = 0L;
+        long potentialMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves, including moves protecting pieces
-        potentialMoves |= diagonalForCheck();
-        potentialMoves |= horizontalForCheck();
+        potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, diagonalForCheck());
+        potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, horizontalForCheck());
 
-        return potentialMoves;
+        return potentialMovesBitBoard;
     }
 }

@@ -4,6 +4,9 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.List;
 
+import Utils.CoorPair;
+import Utils.SoundControl;
+import Utils.BitBoard;
 import javafx.application.Application;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -71,12 +74,15 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+
+
         //For SFX control
         try {
             soundControl.playGameStart();
         } catch (MalformedURLException ignored) {
         }
     }
+
 
     /**
      * Adds all pieces to anchorPane
@@ -105,6 +111,7 @@ public class Main extends Application {
 
         return spaces;
     }
+
 
     /**
      * Creates all the pieces on the chessboard
@@ -154,7 +161,7 @@ public class Main extends Application {
             whitePieces.get(i).setCoordinates(xCoor * 60, 360);
 
             currentPieceLocations[whitePieces.get(i).getCoordinates().getToken()] = whitePieces.get(i);
-            currentPieceLocations[blackPieces.get(i).getCoordinates().getToken()] =blackPieces.get(i);
+            currentPieceLocations[blackPieces.get(i).getCoordinates().getToken()] = blackPieces.get(i);
 
             ++xCoor;
         }
@@ -175,17 +182,6 @@ public class Main extends Application {
         allPieces.addAll(extraPieces);
     }
 
-    public void printBitboard(long bitboard) {
-        for (int position = 0; position < 64; position++) {
-            long bitMask = 1L << position;
-            System.out.print(((bitboard & bitMask) != 0 ? "1" : "0") + " ");
-            if ((position + 1) % 8 == 0) {
-                System.out.println();
-            }
-        }
-        System.out.println();
-    }
-
 
     /**
      * Takes a players color and returns the opponents color.
@@ -195,6 +191,7 @@ public class Main extends Application {
     public Piece.Color getOpponentColor(Piece.Color color) {
         return (color == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
     }
+
 
     /**
      * Takes a pieces coordinates, checks if this move
@@ -215,7 +212,7 @@ public class Main extends Application {
         if (playerToMove != piece.color) return false;
 
         //Check if desired move is potentially legal
-        if ( (1L<<piece.getCoordinates().getToken() & potentialMovesBitBoard) > 0 ) {
+        if ( BitBoard.compareToken(piece.getCoordinates().getToken(), potentialMovesBitBoard) ) {
             isLegalMove = true;
         }
 
@@ -287,19 +284,20 @@ public class Main extends Application {
         return isLegalMove;
     }
 
+
     /**
      * Check if we are capturing a piece
      * If this move is legal and capturing a piece, remove the opponent piece from the board
      * @param piece Piece to move
      * @return If the piece captured an enemy piece or not
      */
-    public boolean checkForCapture(Piece piece) {
+    public boolean handleCapture(Piece piece) {
         boolean isLegalMove = true;
         /*
         Checks if there's a piece in the space the player is trying to move to
         */
 
-        if ( currentPieceLocations[piece.getCoordinates().getToken()] == null ) return true;
+        if ( currentPieceLocations[piece.getCoordinates().getToken()] == null ) return true; //True for legal move
 
         //if there's a piece there of a different color
         if (currentPieceLocations[piece.getCoordinates().getToken()].color != piece.color) {
@@ -340,6 +338,7 @@ public class Main extends Application {
         return isLegalMove;
     }
 
+
     /**
      * Checks if @pawn can promote, if it can promote
      * handle logic to replace it with a queen of the correct color.
@@ -376,6 +375,7 @@ public class Main extends Application {
         return false;
     }
 
+
     /**
      * Checks if a king is in check in the current board state
      *
@@ -408,12 +408,12 @@ public class Main extends Application {
         for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
             if (piece.pieceType == Piece.PieceType.PAWN || piece.pieceType == Piece.PieceType.KING) {
                 //If piece is a pawn or king we need special logic
-                if ( (piece.movesForCheck() & 1L<<kingToken) > 0 ) {
+                if ( BitBoard.compareToken(kingToken, piece.movesForCheck()) ) {
                     return true;
                 }
 
             } else {
-                if ( (piece.findPotentialMoves() & 1L<<kingToken) > 0 ) {
+                if ( BitBoard.compareToken(kingToken, piece.findPotentialMoves()) ) {
                     return true;
                 }
 
@@ -423,6 +423,7 @@ public class Main extends Application {
         //Return false if no moves were found to put king in check
         return false;
     }
+
 
     /**
      * Checks given color to see if that player can make any moves
@@ -445,7 +446,7 @@ public class Main extends Application {
 
                 for ( int i = 0; i < 64; i++ ) {
                     //Check all potential moves
-                    if ( (potentialMovesBitBoard & 1L<<i) > 0 ) {
+                    if ( BitBoard.compareToken(i, potentialMovesBitBoard) ) {
                         pieceToCheck.setCoordinates(i);
 
                         if ( isPotentialMoveLegal(pieceToCheck)) {
@@ -506,7 +507,7 @@ public class Main extends Application {
                 boolean promoted = false;
                 boolean isLegalMove = false;
 
-                //printBitboard(potentialMovesBitBoard);
+                //BitBoard.printBitboard(potentialMovesBitBoard);
 
                 //Find the nearest space to the cursor
                 movedPiece.findNearestSpace();
@@ -521,7 +522,7 @@ public class Main extends Application {
 
                 //Check if we're making a legal capture
                 if ( isLegalMove ) {
-                    isLegalMove = checkForCapture(movedPiece);
+                    isLegalMove = handleCapture(movedPiece);
                 }
 
                 //Check if we captured a piece

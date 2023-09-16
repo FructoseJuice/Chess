@@ -1,3 +1,6 @@
+import Utils.BitBoard;
+import Utils.CoorPair;
+
 import java.io.FileNotFoundException;
 
 public class King extends Piece {
@@ -22,10 +25,8 @@ public class King extends Piece {
         //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
         //Puts the king in check
 
-        long illegalMovesBitMask; //Mask for moves to prune away
         //Prune away illegal moves
-        illegalMovesBitMask = legalMovesBitBoard & opponentMoves;
-        legalMovesBitBoard ^= illegalMovesBitMask;
+        legalMovesBitBoard = BitBoard.prune(legalMovesBitBoard, opponentMoves);
 
         //Checks if a king can castle
         //Can only castle if it's our first move, and we're not in check
@@ -86,7 +87,7 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMovesBitBoard |= 1L<<newMove;
+                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove);
             }
         }
 
@@ -123,7 +124,7 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkNewMove(newMove)) {
-                potentialMovesBitBoard |= 1L<<newMove;
+                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove);
             }
         }
 
@@ -156,7 +157,7 @@ public class King extends Piece {
         long opponentMovesBitBoard = 0L;
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
-            opponentMovesBitBoard |= piece.movesForCheck();
+            opponentMovesBitBoard = BitBoard.add(opponentMovesBitBoard, piece.movesForCheck());
         }
 
         return opponentMovesBitBoard;

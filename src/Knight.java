@@ -1,3 +1,6 @@
+import Utils.BitBoard;
+import Utils.CoorPair;
+
 import java.io.FileNotFoundException;
 
 public class Knight extends Piece {
@@ -23,7 +26,7 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkNewMove(newMove)) {
-                legalMovesBitBoard |= 1L<<newMove.getToken();
+                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -69,7 +72,7 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMovesBitBoard |= 1L<<newMove.getToken();
+                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove.getToken());
             }
         }
 
