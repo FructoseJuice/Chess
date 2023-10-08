@@ -246,6 +246,25 @@ public abstract class Piece {
         CoorPair newMove = new CoorPair(-1, -1);
         long legalMovesBitBoard = 0L;
 
+        //Verify we will be able to threaten king at all
+        //Must be on kings row +- 1, or kings col +- 1
+        for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
+            if (piece instanceof King) {
+                int kingRow = piece.getCoordinates().getRow();
+                int kingCol = piece.getCoordinates().getColumn();
+                int myRow = coorPair.getRow();
+                int myCol = coorPair.getColumn();
+
+                //Check if out of acceptable range
+                if((kingRow-1 > myRow || kingRow+1 < myRow) && (kingCol-1 > myCol || kingCol+1 < myCol)) {
+                    //Return empty bitboard
+                    return 0L;
+                } else {
+                    break;
+                }
+            }
+        }
+
         int[][] directions = {
                 {1, 0},  //Right movement
                 {-1, 0}, //Left movement

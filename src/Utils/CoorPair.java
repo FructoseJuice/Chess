@@ -41,6 +41,10 @@ public class CoorPair {
         return yCoor;
     }
 
+    public int getColumn() { return (int) (xCoor / 60.0);}
+
+    public int getRow() { return (int) (yCoor / 60.0);}
+
     public int getToken() {
         return token;
     }
