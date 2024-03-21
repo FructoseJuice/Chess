@@ -49,6 +49,10 @@ public class CoorPair {
         return token;
     }
 
+    public long getShiftedToken() {
+        return BitBoard.shiftToken(token);
+    }
+
     public boolean coorEquals(CoorPair pairToCheck) {
         return ( this.token == pairToCheck.getToken() );
     }

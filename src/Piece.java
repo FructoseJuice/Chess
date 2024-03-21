@@ -74,6 +74,7 @@ public abstract class Piece {
     }
 
     public void setCoordinates(CoorPair newCoors) {
+        //Set new coordinates
         coorPair = new CoorPair(newCoors.getXCoor(), newCoors.getYCoor());
     }
 
@@ -174,7 +175,7 @@ public abstract class Piece {
 
 
                 int newMoveToken = newMove.getToken();
-                Piece pieceAtLocation = Main.currentPieceLocations[newMoveToken];
+                Piece pieceAtLocation = Board.currentPieceLocations[newMoveToken];
 
                 //Check if there is a piece at this location
                 if (pieceAtLocation != null) {
@@ -220,8 +221,8 @@ public abstract class Piece {
                     break;  // Stop checking this direction if move is out of bounds
                 }
 
-                if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                    if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
+                if (Board.currentPieceLocations[newMove.getToken()] != null) {
+                    if (Board.currentPieceLocations[newMove.getToken()].color != this.color) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
@@ -247,7 +248,7 @@ public abstract class Piece {
 
         //Verify we will be able to threaten king at all
         //Must be on kings row +- 1, or kings col +- 1
-        for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
+        for (Piece piece : Board.pieces.getOpponentPieces(this.color)) {
             if (piece instanceof King) {
                 int kingRow = piece.getCoordinates().getRow();
                 int kingCol = piece.getCoordinates().getColumn();
@@ -282,14 +283,14 @@ public abstract class Piece {
                     break;  // Stop checking this direction if move is out of bounds
                 }
 
-                if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                    if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
+                if (Board.currentPieceLocations[newMove.getToken()] != null) {
+                    if (Board.currentPieceLocations[newMove.getToken()].color == this.color) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
                 } else {
                     //If we encountered the opponent king, keep adding moves in this direction
-                    if (pieceOpponentKing(newMove.getToken())) {
+                    if (isPieceOpponentKing(newMove.getToken())) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                         continue;
                     }
@@ -334,7 +335,7 @@ public abstract class Piece {
                 }
 
                 int newMoveToken = newMove.getToken();
-                Piece pieceAtLocation = Main.currentPieceLocations[newMoveToken];
+                Piece pieceAtLocation = Board.currentPieceLocations[newMoveToken];
 
                 //Check if there is a piece at this location
                 if (pieceAtLocation != null) {
@@ -345,7 +346,7 @@ public abstract class Piece {
                     break;
                 } else {
                     //If encountered enemy king, keep adding moves in this direction
-                    if ( pieceOpponentKing(newMoveToken)) {
+                    if ( isPieceOpponentKing(newMoveToken)) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                         continue;
                     }
@@ -364,10 +365,10 @@ public abstract class Piece {
      * If they encounter a king on their movement path, we find the next potential move
      * @return if they can continue moving in this direction
      */
-    private boolean pieceOpponentKing(Integer newMove) {
+    private boolean isPieceOpponentKing(Integer newMove) {
         //If the piece is the king, we have to keep adding moves in this direction
-        if (Main.currentPieceLocations[newMove] instanceof King) {
-            return (Main.currentPieceLocations[newMove].color != this.color);
+        if (Board.currentPieceLocations[newMove] instanceof King) {
+            return (Board.currentPieceLocations[newMove].color != this.color);
         }
 
         return false;
@@ -378,8 +379,8 @@ public abstract class Piece {
      * @param coordinateToken Coordinates to check
      * @return If opponent piece at coordinates
      */
-    public boolean IsOpponentPiece(int coordinateToken) {
-        return (Main.currentPieceLocations[coordinateToken] != null
-                && Main.currentPieceLocations[coordinateToken].color != this.color);
+    public boolean isPieceAtCoordinates(int coordinateToken) {
+        return (Board.currentPieceLocations[coordinateToken] != null
+                && Board.currentPieceLocations[coordinateToken].color != this.color);
     }
 }

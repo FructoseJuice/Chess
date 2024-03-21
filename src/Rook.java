@@ -17,15 +17,11 @@ public class Rook extends Piece {
 
     @Override
     public Long findPotentialMoves() {
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         return findPotentialHorizontalMoves();
     }
 
     @Override
     public Long movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         return horizontalForCheck();
     }
 }

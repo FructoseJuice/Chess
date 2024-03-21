@@ -7,15 +7,11 @@ public class Bishop extends Piece {
 
     @Override
     public Long findPotentialMoves() {
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         return findPotentialDiagonalMoves();
     }
 
     @Override
     public Long movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         return diagonalForCheck();
     }
 }

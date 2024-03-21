@@ -9,9 +9,6 @@ public class Queen extends Piece {
 
     @Override
     public Long findPotentialMoves() {
-        //Make sure we're in bounds of board before calculations
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         long legalMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves
@@ -23,9 +20,6 @@ public class Queen extends Piece {
 
     @Override
     public Long movesForCheck() {
-        //Make sure we're in bounds of board before calculations
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         long potentialMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves, including moves protecting pieces

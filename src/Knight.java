@@ -10,8 +10,6 @@ public class Knight extends Piece {
 
     @Override
     public Long findPotentialMoves() {
-        if (!this.getCoordinates().isInBounds()) return 0L;
-
         long legalMovesBitBoard = 0L;
         CoorPair newMove = new CoorPair(-1, -1);
 
@@ -42,8 +40,8 @@ public class Knight extends Piece {
     private boolean checkNewMove(CoorPair newMove) {
         if(!newMove.isInBounds()) return false;
 
-        if (Main.currentPieceLocations[newMove.getToken()] != null) {
-            return Main.currentPieceLocations[newMove.getToken()].color != this.color;
+        if (Board.currentPieceLocations[newMove.getToken()] != null) {
+            return Board.currentPieceLocations[newMove.getToken()].color != this.color;
         } else {
             return true;
         }
@@ -55,8 +53,6 @@ public class Knight extends Piece {
      */
     @Override
     public Long movesForCheck() {
-        if ( !this.getCoordinates().isInBounds() ) return 0L;
-
         CoorPair newMove = new CoorPair(-1, -1);
         long potentialMovesBitBoard = 0L;
 
@@ -86,8 +82,8 @@ public class Knight extends Piece {
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (!newMove.isInBounds()) return false;
 
-        if (Main.currentPieceLocations[newMove.getToken()] != null) {
-            return Main.currentPieceLocations[newMove.getToken()].color == this.color;
+        if (Board.currentPieceLocations[newMove.getToken()] != null) {
+            return Board.currentPieceLocations[newMove.getToken()].color == this.color;
         } else {
             return true;
         }
