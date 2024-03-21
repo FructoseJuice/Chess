@@ -16,34 +16,33 @@ public class King extends Piece {
 
     @Override
     public Long findPotentialMoves() {
-        //Gets the potential legal moves this king can make
+
         Long legalMovesBitBoard = getPotentialMoves();
 
         //Gets all possible moves of the opponent
         Long opponentMoves = spacesOpponentCanMove();
 
-        //If one of our potential moves is the same as an opponents possible move, then it's not legal as it
-        //Puts the king in check
-
-        //Prune away illegal moves
+        //Prune away moves that put us in check
         legalMovesBitBoard = BitBoard.prune(legalMovesBitBoard, opponentMoves);
 
-        //Checks if a king can castle
+        /*
+        Checks if a king can castle
+         */
+
         //Can only castle if it's our first move, and we're not in check
         if (firstMove && !Main.isKingInCheck(this.color)) {
             boolean rightRookCanCastle = false;
             boolean leftRookCanCastle = false;
             for (Piece piece : (this.color == Color.WHITE) ? Main.whitePieces : Main.blackPieces) {
-                if (piece.pieceType == PieceType.ROOK) {
-                    //Checks if the rook can still castle
-                    if (((Rook) piece).getFirstMoveStatus()) {
-                        if (piece.getCoordinates().coorEquals(new CoorPair(this.getXCoor() + 180, this.getYCoor()))) {
-                            rightRookCanCastle = true;
-                        }
-                        if (piece.getCoordinates().coorEquals(new CoorPair(this.getXCoor() - 240, this.getYCoor()))) {
-                            leftRookCanCastle = true;
-                        }
-                    }
+                //Ensure piece is rook and if it's first move
+                if (piece.pieceType != PieceType.ROOK) continue;
+                if(!((Rook) piece).getFirstMoveStatus()) continue;
+
+                if (piece.getCoordinates().coorEquals(new CoorPair(this.getXCoor() + 180, this.getYCoor()))) {
+                    rightRookCanCastle = true;
+                }
+                if (piece.getCoordinates().coorEquals(new CoorPair(this.getXCoor() - 240, this.getYCoor()))) {
+                    leftRookCanCastle = true;
                 }
             }
 
@@ -56,6 +55,7 @@ public class King extends Piece {
                     ((opponentMoves & new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()) == 0) &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()] == null) {
+
                 legalMovesBitBoard |= 1L<<new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken();
             }
 
@@ -65,6 +65,7 @@ public class King extends Piece {
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()] == null &
                     Main.currentPieceLocations[new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken()] == null) {
+
                 legalMovesBitBoard |= 1L<<new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken();
             }
         }
@@ -87,7 +88,7 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove);
+                potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, newMove);
             }
         }
 
@@ -124,7 +125,7 @@ public class King extends Piece {
         for (int[] movement : movements) {
             newMove = CoorPair.tokenize(this.getXCoor() + movement[0], this.getYCoor() + movement[1]);
             if (checkNewMove(newMove)) {
-                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove);
+                potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, newMove);
             }
         }
 
@@ -157,7 +158,7 @@ public class King extends Piece {
         long opponentMovesBitBoard = 0L;
 
         for (Piece piece : (this.color == Color.WHITE) ? Main.blackPieces : Main.whitePieces) {
-            opponentMovesBitBoard = BitBoard.add(opponentMovesBitBoard, piece.movesForCheck());
+            opponentMovesBitBoard = BitBoard.merge(opponentMovesBitBoard, piece.movesForCheck());
         }
 
         return opponentMovesBitBoard;

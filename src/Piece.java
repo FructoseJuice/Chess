@@ -170,9 +170,8 @@ public abstract class Piece {
                 CoorPair newMove = new CoorPair(newX, newY);
 
                 //Check if move is in bounds
-                if (!newMove.isInBounds()) {
-                    break;
-                }
+                if (!newMove.isInBounds()) break;
+
 
                 int newMoveToken = newMove.getToken();
                 Piece pieceAtLocation = Main.currentPieceLocations[newMoveToken];
@@ -181,12 +180,12 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color != this.color) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                     }
                     break;
                 }
 
-                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
+                legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
             }
         }
 
@@ -223,12 +222,12 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color != this.color) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
                 }
 
-                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -285,18 +284,18 @@ public abstract class Piece {
 
                 if (Main.currentPieceLocations[newMove.getToken()] != null) {
                     if (Main.currentPieceLocations[newMove.getToken()].color == this.color) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
                 } else {
                     //If we encountered the opponent king, keep adding moves in this direction
                     if (pieceOpponentKing(newMove.getToken())) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                         continue;
                     }
                 }
 
-                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -341,18 +340,18 @@ public abstract class Piece {
                 if (pieceAtLocation != null) {
                     //Check if this piece is of the opposite color
                     if (pieceAtLocation.color == this.color) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                     }
                     break;
                 } else {
                     //If encountered enemy king, keep adding moves in this direction
                     if ( pieceOpponentKing(newMoveToken)) {
-                        legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
+                        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                         continue;
                     }
                 }
 
-                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMoveToken);
+                legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
             }
         }
 

@@ -1,13 +1,13 @@
 package Utils;
 
 public class BitBoard {
-    public static long add(long board, long addition) {
+    public static long merge(long board, long addition) {
          board |= addition;
          return board;
     }
 
-    public static long addToken(long board, long token) {
-        return add(board, shiftToken(token));
+    public static long add(long board, long token) {
+        return merge(board, shiftToken(token));
     }
 
     public static boolean compare(long board, long toCompare) {

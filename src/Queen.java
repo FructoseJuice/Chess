@@ -15,8 +15,8 @@ public class Queen extends Piece {
         long legalMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves
-        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, findPotentialDiagonalMoves());
-        legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, findPotentialHorizontalMoves());
+        legalMovesBitBoard = BitBoard.merge(legalMovesBitBoard, findPotentialDiagonalMoves());
+        legalMovesBitBoard = BitBoard.merge(legalMovesBitBoard, findPotentialHorizontalMoves());
 
         return legalMovesBitBoard;
     }
@@ -29,8 +29,8 @@ public class Queen extends Piece {
         long potentialMovesBitBoard = 0L;
 
         //Find all diagonal and horizontal moves, including moves protecting pieces
-        potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, diagonalForCheck());
-        potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, horizontalForCheck());
+        potentialMovesBitBoard = BitBoard.merge(potentialMovesBitBoard, diagonalForCheck());
+        potentialMovesBitBoard = BitBoard.merge(potentialMovesBitBoard, horizontalForCheck());
 
         return potentialMovesBitBoard;
     }

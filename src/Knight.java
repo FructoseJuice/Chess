@@ -26,7 +26,7 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkNewMove(newMove)) {
-                legalMovesBitBoard = BitBoard.addToken(legalMovesBitBoard, newMove.getToken());
+                legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -40,14 +40,13 @@ public class Knight extends Piece {
      * @return if it's valid
      */
     private boolean checkNewMove(CoorPair newMove) {
-        if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                return Main.currentPieceLocations[newMove.getToken()].color != this.color;
-            } else {
-                return true;
-            }
+        if(!newMove.isInBounds()) return false;
+
+        if (Main.currentPieceLocations[newMove.getToken()] != null) {
+            return Main.currentPieceLocations[newMove.getToken()].color != this.color;
+        } else {
+            return true;
         }
-        return false;
     }
 
     /**
@@ -72,7 +71,7 @@ public class Knight extends Piece {
 
             newMove.setCoordinates(this.getXCoor() + dx, this.getYCoor() + dy);
             if (checkPotentialMoveForCheck(newMove)) {
-                potentialMovesBitBoard = BitBoard.addToken(potentialMovesBitBoard, newMove.getToken());
+                potentialMovesBitBoard = BitBoard.add(potentialMovesBitBoard, newMove.getToken());
             }
         }
 
@@ -85,13 +84,12 @@ public class Knight extends Piece {
      * @return if this move is potentially legal
      */
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
-        if (newMove.isInBounds()) {
-            if (Main.currentPieceLocations[newMove.getToken()] != null) {
-                return Main.currentPieceLocations[newMove.getToken()].color == this.color;
-            } else {
-                return true;
-            }
+        if (!newMove.isInBounds()) return false;
+
+        if (Main.currentPieceLocations[newMove.getToken()] != null) {
+            return Main.currentPieceLocations[newMove.getToken()].color == this.color;
+        } else {
+            return true;
         }
-        return false;
     }
 }

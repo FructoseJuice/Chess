@@ -48,7 +48,7 @@ public class Main extends Application {
     //Logs the current player to move
     Piece.Color playerToMove = Piece.Color.WHITE;
     //If game is in checkmate status
-    Boolean checkmate = false;
+    Boolean inCheckmate = false;
 
 
     public static void main(String[] args) {
@@ -204,6 +204,8 @@ public class Main extends Application {
     public boolean isPotentialMoveLegal(Piece piece) {
         boolean isLegalMove = false;
 
+        int moveToken = piece.getCoordinates().getToken();
+
         /*
         Check if this move is potentially legal
          */
@@ -212,7 +214,7 @@ public class Main extends Application {
         if (playerToMove != piece.color) return false;
 
         //Check if desired move is potentially legal
-        if ( BitBoard.compareToken(piece.getCoordinates().getToken(), potentialMovesBitBoard) ) {
+        if ( BitBoard.compareToken(moveToken, potentialMovesBitBoard) ) {
             isLegalMove = true;
         }
 
@@ -225,18 +227,18 @@ public class Main extends Application {
             */
 
             //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
-            if (currentPieceLocations[piece.getCoordinates().getToken()] == null) {
+            if (currentPieceLocations[moveToken] == null) {
                 //Removes original coordinate of piece, so we can check it's new potential position
                 currentPieceLocations[oldCoors.getToken()] = null;
 
                 //Put new coordinates in
-                currentPieceLocations[piece.getCoordinates().getToken()] = piece;
+                currentPieceLocations[moveToken] = piece;
 
                 //Not a legal move is king is now in check
                 isLegalMove = !isKingInCheck(piece.color);
 
                 //Remove new coordinates
-                Main.currentPieceLocations[piece.getCoordinates().getToken()] = null;
+                Main.currentPieceLocations[moveToken] = null;
 
                 //Restore old coordinates
                 Main.currentPieceLocations[oldCoors.getToken()] = piece;
@@ -248,40 +250,51 @@ public class Main extends Application {
          */
 
         if (isLegalMove && piece instanceof Pawn) {
+            //Check if on correct row
             if (piece.color == Piece.Color.WHITE && piece.getYCoor() == 120.0
                     || piece.color == Piece.Color.BLACK && piece.getYCoor() == 300.0) {
-
-                CoorPair tempCoor = new CoorPair(piece.getCoordinates());
-                Piece tempPiece;
-
-                //Increment up/down space based on color
-                tempCoor.setYCoor(tempCoor.getYCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
-
-                //Check for piece in this space
-                if (currentPieceLocations[tempCoor.getToken()] != null) {
-                    tempPiece = currentPieceLocations[tempCoor.getToken()];
-
-                    //Check if pawn
-                    if (tempPiece instanceof Pawn) {
-
-                        //Only pawns of opposite color will be en-passantable here
-                        if (((Pawn) tempPiece).enPassantable) {
-
-                            //Remove captured piece
-                            //This is safe because we will never be able to en-passant and capture
-                            //when checking for checkmate
-                            tempPiece.setCoordinates(-1000, -1000);
-                            allPieces.remove(tempPiece);
-                            currentPieceLocations[tempCoor.getToken()] = null;
-
-                            return true;
-                        }
-                    }
-                }
+                if (checkEnPassant(piece)) return true;
             }
         }
 
         return isLegalMove;
+    }
+
+    /**
+     * Check if the player is making a legal en-passant.
+     *
+     * @param piece Moved piece
+     * @return If en passant legal
+     */
+    public boolean checkEnPassant(Piece piece) {
+        CoorPair enemyCoor = new CoorPair(piece.getCoordinates());
+
+        //Increment up/down space based on color
+        enemyCoor.setYCoor(enemyCoor.getYCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
+
+        //Check for piece in this space
+        if (currentPieceLocations[enemyCoor.getToken()] != null) {
+            Piece enemy;
+
+            enemy = currentPieceLocations[enemyCoor.getToken()];
+
+            //Ensure enemy piece is a pawn
+            if (!(enemy instanceof Pawn)) return false;
+
+            //Only pawns of opposite color will be en-passantable here
+            if (((Pawn) enemy).enPassantable) {
+                //Remove captured piece
+                //This is safe because we will never be able to en-passant and capture
+                //when checking for checkmate
+                enemy.setCoordinates(-1000, -1000);
+                allPieces.remove(enemy);
+                currentPieceLocations[enemyCoor.getToken()] = null;
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -293,18 +306,21 @@ public class Main extends Application {
      */
     public boolean handleCapture(Piece piece) {
         boolean isLegalMove = true;
+
+        int move = piece.getCoordinates().getToken();
+
         /*
         Checks if there's a piece in the space the player is trying to move to
         */
 
-        if ( currentPieceLocations[piece.getCoordinates().getToken()] == null ) return true; //True for legal move
+        if ( currentPieceLocations[move] == null ) return true; //True for legal move
 
         //if there's a piece there of a different color
-        if (currentPieceLocations[piece.getCoordinates().getToken()].color != piece.color) {
+        if (currentPieceLocations[move].color != piece.color) {
 
             //Save the piece we're attempting to capture
-            Piece capturedPiece = currentPieceLocations[piece.getCoordinates().getToken()];
-            currentPieceLocations[piece.getCoordinates().getToken()] = null;
+            Piece capturedPiece = currentPieceLocations[move];
+            currentPieceLocations[move] = null;
 
             //Saves the "captured" pieces coordinates
             CoorPair capturedOldCoors = capturedPiece.getCoordinates();
@@ -314,7 +330,7 @@ public class Main extends Application {
 
             //Temporarily change this pieces coordinates
             currentPieceLocations[oldCoors.getToken()] = null;
-            currentPieceLocations[piece.getCoordinates().getToken()] = piece;
+            currentPieceLocations[move] = piece;
 
             //Check if king is in check
             isLegalMove = !isKingInCheck(piece.color);
@@ -383,26 +399,14 @@ public class Main extends Application {
      * @return If king is in check
      */
     public static boolean isKingInCheck(Piece.Color color) {
-        Integer kingToken = null;
+        int kingToken = -1;
 
         //Grab this king's Coordinates
-        if ( color == Piece.Color.WHITE ) {
-            //Find king
-            for ( Piece piece : whitePieces ) {
-                if ( piece instanceof King ) {
-                    kingToken = piece.getCoordinates().getToken();
-                }
-            }
-        } else {
-            for ( Piece piece : blackPieces ) {
-                if ( piece instanceof King ) {
-                    kingToken = piece.getCoordinates().getToken();
-                }
+        for( Piece piece : (color == Piece.Color.WHITE) ? whitePieces : blackPieces) {
+            if ( piece instanceof King ) {
+                kingToken = piece.getCoordinates().getToken();
             }
         }
-
-        //We will always find each king
-        assert kingToken != null;
 
         //Check all the moves for the opponent
         for ( Piece piece : (color == Piece.Color.WHITE) ? blackPieces : whitePieces) {
@@ -430,38 +434,39 @@ public class Main extends Application {
      * @param colorToCheck Color to check
      */
     public void inCheckmate(Piece.Color colorToCheck) {
-        //First check if king is in check
-        if (isKingInCheck(getOpponentColor(colorToCheck))) {
-            //Temporarily sets checkmate to true
-            checkmate = true;
-            //Check if opponent can make any legal moves
-            for (Piece pieceToCheck : (colorToCheck == Piece.Color.WHITE) ? blackPieces : whitePieces) {
-                //Exit loop if mate
-                if (!checkmate) break;
+        //Ensure king is in check
+        if(!isKingInCheck(getOpponentColor(colorToCheck))) return;
 
-                //Find all potential moves
-                potentialMovesBitBoard = pieceToCheck.findPotentialMoves();
+        //Temporarily sets checkmate to true
+        inCheckmate = true;
 
-                oldCoors = pieceToCheck.getCoordinates();
+        //Check if opponent can make any legal moves
+        for (Piece pieceToCheck : (colorToCheck == Piece.Color.WHITE) ? blackPieces : whitePieces) {
+            //Find all potential moves
+            potentialMovesBitBoard = pieceToCheck.findPotentialMoves();
 
-                for ( int i = 0; i < 64; i++ ) {
-                    //Check all potential moves
-                    if ( BitBoard.compareToken(i, potentialMovesBitBoard) ) {
-                        pieceToCheck.setCoordinates(i);
+            oldCoors = pieceToCheck.getCoordinates();
 
-                        if ( isPotentialMoveLegal(pieceToCheck)) {
-                            checkmate = false;
-                            break;
-                        }
+            for ( int i = 0; i < 64; i++ ) {
+                //Check all potential moves
+                if ( BitBoard.compareToken(i, potentialMovesBitBoard) ) {
+                    pieceToCheck.setCoordinates(i);
+
+                    if ( isPotentialMoveLegal(pieceToCheck)) {
+                        inCheckmate = false;
+                        break;
                     }
                 }
-
-                //Restore coordinates of piece we're checking
-                pieceToCheck.setCoordinates(oldCoors.getXCoor(), oldCoors.getYCoor());
             }
 
-            if (checkmate) System.out.println("Checkmate.");
+            //Restore coordinates of piece we're checking
+            pieceToCheck.setCoordinates(oldCoors);
+
+            //Exit loop if not mate
+            if (!inCheckmate) break;
         }
+
+        if (inCheckmate) System.out.println("Checkmate.");
     }
 
     /**
@@ -516,7 +521,7 @@ public class Main extends Application {
                 int size = allPieces.size();
 
                 //Check if this move is legal
-                if (!checkmate) {
+                if (!inCheckmate) {
                     isLegalMove = isPotentialMoveLegal(movedPiece);
                 }
 
