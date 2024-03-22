@@ -1,3 +1,4 @@
+import Utils.BitBoard;
 import Utils.CoorPair;
 import javafx.scene.layout.AnchorPane;
 
@@ -100,13 +101,36 @@ public class Board {
 
 
     public static void removePieceFromBoard(Piece piece) {
+        //Remove piece from all pieces list
         pieces.getAllPieces().remove(piece);
+
+        //Remove piece from corresponding colored list
+        ((piece.color == Piece.Color.WHITE) ? pieces.getWhitePieces() : pieces.getBlackPieces()).remove(piece);
+
+        //Remove from board
         currentPieceLocations[piece.getCoordinates().getToken()] = null;
         anchorPane.getChildren().remove(piece.pieceObject);
     }
 
     public static boolean isSpaceOccupied(CoorPair space) {
         return currentPieceLocations[space.getToken()] != null;
+    }
+
+    public static boolean isSpaceOccupied(int token) {return currentPieceLocations[token] != null;}
+
+    /**
+     * Checks if there is a piece at specified coordinates @coordinateToken, and if it's of the opposite color
+     * @param coordinateToken Coordinates to check
+     * @return If opponent piece at coordinates
+     */
+    public static boolean isOpponentPieceAtCoordinates(int coordinateToken, Piece.Color playerColor) {
+        return (Board.currentPieceLocations[coordinateToken] != null
+                && Board.currentPieceLocations[coordinateToken].color != playerColor);
+    }
+
+    public static boolean isAllyPieceAtCoordinates(int coordinateToken, Piece.Color playerColor) {
+        return (Board.currentPieceLocations[coordinateToken] != null
+                && Board.currentPieceLocations[coordinateToken].color == playerColor);
     }
 
     public static Piece getPieceAtSpace(CoorPair space) {

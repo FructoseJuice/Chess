@@ -66,8 +66,8 @@ public class King extends Piece {
                         (BitBoard.compareToken(opponentMoves, new CoorPair(getXCoor() + 120, getYCoor()).getToken())));
 
         boolean castlingSpacesEmpty =
-                Board.currentPieceLocations[new CoorPair(this.getXCoor() + 60, this.getYCoor()).getToken()] == null &&
-                        Board.currentPieceLocations[new CoorPair(this.getXCoor() + 120, this.getYCoor()).getToken()] == null;
+                !Board.isSpaceOccupied(new CoorPair(getXCoor() + 60, getYCoor())) &&
+                        !Board.isSpaceOccupied(new CoorPair(getXCoor() + 120, getYCoor()));
 
 
         if (rightRookCanCastle & !opponentBlockingCastle & castlingSpacesEmpty) {
@@ -80,12 +80,12 @@ public class King extends Piece {
                         (BitBoard.compareToken(opponentMoves, new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()));
 
         castlingSpacesEmpty =
-                Board.currentPieceLocations[new CoorPair(this.getXCoor() - 60, this.getYCoor()).getToken()] == null &&
-                        Board.currentPieceLocations[new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken()] == null &&
-                        Board.currentPieceLocations[new CoorPair(this.getXCoor() - 180, this.getYCoor()).getToken()] == null;
+                !Board.isSpaceOccupied(new CoorPair(getXCoor() - 60, getYCoor())) &&
+                        !Board.isSpaceOccupied(new CoorPair(getXCoor() - 120, getYCoor())) &&
+                        !Board.isSpaceOccupied(new CoorPair(getXCoor() - 180, getYCoor()));
 
         if (leftRookCanCastle & !opponentBlockingCastle & castlingSpacesEmpty) {
-            legalMovesBitBoard |= 1L << new CoorPair(this.getXCoor() - 120, this.getYCoor()).getToken();
+            legalMovesBitBoard |= 1L << new CoorPair(getXCoor() - 120, getYCoor()).getToken();
         }
 
 
@@ -120,7 +120,7 @@ public class King extends Piece {
         if (!newMove.isInBounds()) return false;
 
         //Return true if no pieces are at this space
-        if (Board.currentPieceLocations[newMove.getToken()] == null) return true;
+        if (!Board.isSpaceOccupied(newMove)) return true;
 
         //Return if king is protecting a piece
         return Board.currentPieceLocations[newMove.getToken()].color == this.color;
@@ -165,7 +165,7 @@ public class King extends Piece {
         if (!newMove.isInBounds()) return false;
 
         //If space is empty return true
-        if (Board.currentPieceLocations[newMove.getToken()] == null) return true;
+        if (!Board.isSpaceOccupied(newMove)) return true;
 
         //Return if the king is capturing a piece
         return Board.currentPieceLocations[newMove.getToken()].color != this.color;

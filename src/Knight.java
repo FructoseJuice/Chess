@@ -40,8 +40,8 @@ public class Knight extends Piece {
     private boolean checkNewMove(CoorPair newMove) {
         if(!newMove.isInBounds()) return false;
 
-        if (Board.currentPieceLocations[newMove.getToken()] != null) {
-            return Board.currentPieceLocations[newMove.getToken()].color != this.color;
+        if (Board.isSpaceOccupied(newMove)) {
+            return Board.isOpponentPieceAtCoordinates(newMove.getToken(), color);
         } else {
             return true;
         }
@@ -82,8 +82,8 @@ public class Knight extends Piece {
     private boolean checkPotentialMoveForCheck(CoorPair newMove) {
         if (!newMove.isInBounds()) return false;
 
-        if (Board.currentPieceLocations[newMove.getToken()] != null) {
-            return Board.currentPieceLocations[newMove.getToken()].color == this.color;
+        if (Board.isSpaceOccupied(newMove)) {
+            return Board.isAllyPieceAtCoordinates(newMove.getToken(), color);
         } else {
             return true;
         }

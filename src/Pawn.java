@@ -39,11 +39,9 @@ public class Pawn extends Piece {
      * @param legalMoves running list of potentially legal moves
      */
     private Long enPassantCheck(CoorPair move, Long legalMoves) {
-        int moveToken = move.getToken();
-
-        if (Board.currentPieceLocations[moveToken] != null) {
-            if (Board.currentPieceLocations[moveToken] instanceof Pawn
-                    && ((Pawn) Board.currentPieceLocations[moveToken]).enPassantable) {
+        if (Board.isSpaceOccupied(move)) {
+            if (Board.getPieceAtSpace(move) instanceof Pawn
+                    && ((Pawn) Board.getPieceAtSpace(move)).enPassantable) {
                 move.setYCoor(move.getYCoor() + ((this.color == Color.WHITE) ? -60.0 : 60.0));
                 //Store new move
                 legalMoves = BitBoard.add(legalMoves, move.getToken());
@@ -66,7 +64,7 @@ public class Pawn extends Piece {
         newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement);
 
         //If there isn't a piece in front of us, we can move forwards
-        if (Board.currentPieceLocations[newMove] == null) {
+        if (!Board.isSpaceOccupied(newMove)) {
             legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove);
         }
 
@@ -78,7 +76,7 @@ public class Pawn extends Piece {
             newMove = CoorPair.tokenize(this.getXCoor(), this.getYCoor() + yMovement * 2);
 
             //Check if any pieces are 2 squares in front of us
-            if (Board.currentPieceLocations[newMove] == null) {
+            if (!Board.isSpaceOccupied(newMove)) {
                 legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove);
             }
         }
@@ -101,7 +99,7 @@ public class Pawn extends Piece {
         diagonalMove = new CoorPair(this.getXCoor() - xMovement, this.getYCoor() + yMovement);
         if ( diagonalMove.isInBounds() ) {
             int leftDiagonal = diagonalMove.getToken();
-            if (isPieceAtCoordinates(leftDiagonal)) {
+            if (Board.isOpponentPieceAtCoordinates(leftDiagonal, color)) {
                 //Add if enemy at diagonal
                 legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, leftDiagonal);
             }
@@ -111,7 +109,7 @@ public class Pawn extends Piece {
         diagonalMove = new CoorPair(this.getXCoor() + xMovement, this.getYCoor() + yMovement);
         if ( diagonalMove.isInBounds() ) {
             int rightDiagonal = diagonalMove.getToken();
-            if (isPieceAtCoordinates(rightDiagonal)) {
+            if (Board.isOpponentPieceAtCoordinates(rightDiagonal, color)) {
                 //Add if enemy at diagonal
                 legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, rightDiagonal);
             }

@@ -170,12 +170,11 @@ public abstract class Piece {
                 if (!newMove.isInBounds()) break;
 
                 int newMoveToken = newMove.getToken();
-                Piece pieceAtLocation = Board.currentPieceLocations[newMoveToken];
 
                 //Check if there is a piece at this location
-                if (pieceAtLocation != null) {
+                if (Board.isSpaceOccupied(newMoveToken)) {
                     //Check if this piece is of the opposite color
-                    if (pieceAtLocation.color != this.color) {
+                    if (Board.isOpponentPieceAtCoordinates(newMoveToken, color)) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                     }
 
@@ -217,8 +216,8 @@ public abstract class Piece {
                     break;  // Stop checking this direction if move is out of bounds
                 }
 
-                if (Board.currentPieceLocations[newMove.getToken()] != null) {
-                    if (Board.currentPieceLocations[newMove.getToken()].color != this.color) {
+                if (Board.isSpaceOccupied(newMove)) {
+                    if (Board.isOpponentPieceAtCoordinates(newMove.getToken(), color)) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
@@ -279,8 +278,8 @@ public abstract class Piece {
                     break;  // Stop checking this direction if move is out of bounds
                 }
 
-                if (Board.currentPieceLocations[newMove.getToken()] != null) {
-                    if (Board.currentPieceLocations[newMove.getToken()].color == this.color) {
+                if (!Board.isSpaceOccupied(newMove)) {
+                    if (Board.isAllyPieceAtCoordinates(newMove.getToken(), color)) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMove.getToken());
                     }
                     break;  // Stop checking this direction if piece is encountered
@@ -331,12 +330,11 @@ public abstract class Piece {
                 }
 
                 int newMoveToken = newMove.getToken();
-                Piece pieceAtLocation = Board.currentPieceLocations[newMoveToken];
 
                 //Check if there is a piece at this location
-                if (pieceAtLocation != null) {
-                    //Check if this piece is of the opposite color
-                    if (pieceAtLocation.color == this.color) {
+                if (Board.isSpaceOccupied(newMoveToken)) {
+                    //Check if this piece is of the same color
+                    if (Board.isAllyPieceAtCoordinates(newMoveToken, color)) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                     }
                     break;
@@ -361,22 +359,12 @@ public abstract class Piece {
      * If they encounter a king on their movement path, we find the next potential move
      * @return if they can continue moving in this direction
      */
-    private boolean isPieceOpponentKing(Integer newMove) {
+    private boolean isPieceOpponentKing(int newMove) {
         //If the piece is the king, we have to keep adding moves in this direction
         if (Board.currentPieceLocations[newMove] instanceof King) {
-            return (Board.currentPieceLocations[newMove].color != this.color);
+            return (Board.isOpponentPieceAtCoordinates(newMove, color));
         }
 
         return false;
-    }
-
-    /**
-     * Checks if there is a piece at specified coordinates @coordinateToken, and if it's of the opposite color
-     * @param coordinateToken Coordinates to check
-     * @return If opponent piece at coordinates
-     */
-    public boolean isPieceAtCoordinates(int coordinateToken) {
-        return (Board.currentPieceLocations[coordinateToken] != null
-                && Board.currentPieceLocations[coordinateToken].color != this.color);
     }
 }
