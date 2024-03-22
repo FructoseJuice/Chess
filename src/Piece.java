@@ -78,10 +78,6 @@ public abstract class Piece {
         coorPair = new CoorPair(newCoors.getXCoor(), newCoors.getYCoor());
     }
 
-    public void setCoordinates(Integer coordinateToken) {
-        coorPair = CoorPair.reverseToken(coordinateToken);
-    }
-
     //Returns in format:
     //double[XCoor, YCoor]
     public CoorPair getCoordinates() {
@@ -173,7 +169,6 @@ public abstract class Piece {
                 //Check if move is in bounds
                 if (!newMove.isInBounds()) break;
 
-
                 int newMoveToken = newMove.getToken();
                 Piece pieceAtLocation = Board.currentPieceLocations[newMoveToken];
 
@@ -183,6 +178,7 @@ public abstract class Piece {
                     if (pieceAtLocation.color != this.color) {
                         legalMovesBitBoard = BitBoard.add(legalMovesBitBoard, newMoveToken);
                     }
+
                     break;
                 }
 

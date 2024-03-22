@@ -1,3 +1,4 @@
+import Utils.CoorPair;
 import javafx.scene.layout.AnchorPane;
 
 import java.io.FileNotFoundException;
@@ -102,5 +103,21 @@ public class Board {
         pieces.getAllPieces().remove(piece);
         currentPieceLocations[piece.getCoordinates().getToken()] = null;
         anchorPane.getChildren().remove(piece.pieceObject);
+    }
+
+    public static boolean isSpaceOccupied(CoorPair space) {
+        return currentPieceLocations[space.getToken()] != null;
+    }
+
+    public static Piece getPieceAtSpace(CoorPair space) {
+        return currentPieceLocations[space.getToken()];
+    }
+
+    public static void addPieceToSpace(Piece piece, CoorPair space) {
+        currentPieceLocations[space.getToken()] = piece;
+    }
+
+    public static void removePieceFromSpace(CoorPair space) {
+        currentPieceLocations[space.getToken()] = null;
     }
 }

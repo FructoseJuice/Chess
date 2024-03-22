@@ -39,13 +39,5 @@ public class BitBoard {
             }
         }
         System.out.println();
-        /*
-        for ( int pos = 0; pos < 64; pos++ ) {
-            long bitMask = 1L << pos;
-            System.out.print(((bitboard & bitMask) != 0 ? "1" : "0")+ " ");
-        }
-        System.out.println();
-
-         */
     }
 }

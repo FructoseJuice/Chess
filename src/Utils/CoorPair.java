@@ -49,10 +49,6 @@ public class CoorPair {
         return token;
     }
 
-    public long getShiftedToken() {
-        return BitBoard.shiftToken(token);
-    }
-
     public boolean coorEquals(CoorPair pairToCheck) {
         return ( this.token == pairToCheck.getToken() );
     }
@@ -91,19 +87,4 @@ public class CoorPair {
 
         return token;
     }
-
-    /**
-     * Reverses a token back into a pair of coordinates
-     * @param token token to be reversed
-     * @return Coordinate pair
-     */
-    public static CoorPair reverseToken(Integer token) {
-        int y;
-        int x;
-        y = (int)Math.floor(token / 8.0);
-        x = token - y*8;
-
-        return new CoorPair(x*60, y*60);
-    }
-
 }

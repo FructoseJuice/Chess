@@ -14,20 +14,18 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-    public Main() throws MalformedURLException {}
-
     /*
     GLOBAL VARIABLES
      */
     //Saves a pieces old coordinates before being moved
-    CoorPair oldCoors;
+    CoorPair movedPieceOldCoors;
     //Saves the legal moves of a piece
     long potentialMovesBitBoard = 0L;
+
     //Logs the current player to move
     Piece.Color playerToMove = Piece.Color.WHITE;
     //If game is in checkmate status
     Boolean inCheckmate = false;
-
 
     public static void main(String[] args) {
         launch(args);
@@ -76,7 +74,7 @@ public class Main extends Application {
             piece.pieceObject.toFront();
 
             //Logs old coordinates
-            oldCoors = new CoorPair(piece.getXCoor(), piece.getYCoor());
+            movedPieceOldCoors = new CoorPair(piece.getXCoor(), piece.getYCoor());
 
             //Find all potentially legal moves for chosen piece
             potentialMovesBitBoard = piece.findPotentialMoves();
@@ -106,7 +104,7 @@ public class Main extends Application {
             piece.pieceObject.setCursor(Cursor.OPEN_HAND);
 
             //Handle logic for moving piece
-            handlePieceMovement(piece);
+            handlePieceMovement(piece, potentialMovesBitBoard);
         });
     }
 
@@ -114,32 +112,49 @@ public class Main extends Application {
      * Handles all the main logic for moving a piece.
      * @param movedPiece Piece moved by player
      */
-    public void handlePieceMovement(Piece movedPiece) {
+    public void handlePieceMovement(Piece movedPiece, long movedPiecePotentialMoves) {
         boolean playedSFX = false;
         boolean playCapture = false;
         boolean promoted = false;
         boolean isLegalMove;
 
-        //BitBoard.printBitboard(potentialMovesBitBoard);
-
         //Find the nearest space to the cursor
         movedPiece.findNearestSpace();
 
+        //Log move
+        CoorPair move = movedPiece.getCoordinates();
+
+        //Reset coordinates
+        movedPiece.setCoordinates(movedPieceOldCoors);
+
         //Check if this move is legal
-        isLegalMove = isPotentialMoveLegal(movedPiece);
+        isLegalMove = isPotentialMoveLegal(movedPiece, movedPieceOldCoors , move, movedPiecePotentialMoves);
 
-        //Check if we're making a legal capture
+        //If legal capture, remove piece from board
         if (isLegalMove) {
-            if (isMoveForCapture(movedPiece)) {
-                isLegalMove = handleCapture(movedPiece);
+            if (Board.isSpaceOccupied(move)) {
+                Board.removePieceFromBoard(Board.currentPieceLocations[move.getToken()]);
 
-                if (isLegalMove) playCapture = true;
+                playCapture = true;
+            }
+        }
+
+        //Check if we're making a legal en passant
+        if (isLegalMove) {
+            if (movedPiece instanceof Pawn && checkEnPassant((Pawn) movedPiece)) {
+                CoorPair capturedPawnCoordinates = new CoorPair(move.getXCoor(), move.getYCoor());
+                int yOffset = (movedPiece.color == Piece.Color.WHITE) ? 60 : -60;
+                capturedPawnCoordinates.setYCoor(move.getYCoor() + yOffset);
+
+                Board.removePieceFromBoard(Board.currentPieceLocations[capturedPawnCoordinates.getToken()]);
+
+                playCapture = true;
             }
         }
 
         if (!isLegalMove) {
-            //Bounces piece back to its original coordinates and short circuits logic
-            movedPiece.setCoordinates(oldCoors.getXCoor(), oldCoors.getYCoor());
+            //Short circuits logic if not a legal move
+            movedPiece.draw();
             return;
         }
 
@@ -151,24 +166,26 @@ public class Main extends Application {
         }
 
         //Remove piece from old coordinates
-        Board.currentPieceLocations[oldCoors.getToken()] = null;
+        Board.removePieceFromSpace(movedPieceOldCoors);
 
         //If a pawn moves we need to set first move to false and check for piece promotion
         if (movedPiece instanceof Pawn) {
-            ((Pawn) movedPiece).setFirstMoveFalse();
-
             //Checks for and handles pawn promotion
             try {
-                promoted = (handlePawnPromotion(movedPiece));
+                promoted = handlePawnPromotion(movedPiece, move);
             } catch (FileNotFoundException e) {
                 //Occurs when new piece doesn't have an image on file
                 throw new RuntimeException(e);
             }
+
+            if (!promoted) movedPiece.setCoordinates(move);
+            ((Pawn) movedPiece).setFirstMoveFalse();
         }
 
         if (!promoted) {
             //If we haven't promoted, update piece locations with new move
-            Board.currentPieceLocations[movedPiece.getCoordinates().getToken()] = movedPiece;
+            Board.addPieceToSpace(movedPiece, move);
+            movedPiece.setCoordinates(move);
         }
 
         //Check if opponent king is now in check
@@ -187,8 +204,10 @@ public class Main extends Application {
         //Check if king
         if (movedPiece instanceof King) {
             //Check for and handle castle
-            if (((King) movedPiece).isFirstMove()) {
-                handleCastle(movedPiece);
+            if (((King) movedPiece).isFirstMove() && handleCastle(movedPiece, movedPieceOldCoors)) {
+                SoundControl.playCastling();
+
+                playedSFX = true;
             }
 
             //Set first move false
@@ -197,7 +216,7 @@ public class Main extends Application {
 
         //Clear pawn en-passantable booleans
         for (Piece pawn : Board.pieces.getAllPieces()) {
-            if (pawn instanceof Pawn) {
+            if (pawn instanceof Pawn && pawn != movedPiece) {
                 ((Pawn) pawn).enPassantable = false;
             }
         }
@@ -229,107 +248,90 @@ public class Main extends Application {
      * @param piece piece that is being moved
      * @return if the move being made is legal
      */
-    private boolean isPotentialMoveLegal(Piece piece) {
-        boolean isLegalMove = true;
-
-        int moveToken = piece.getCoordinates().getToken();
+    private boolean isPotentialMoveLegal(Piece piece, CoorPair oldCoors, CoorPair move, long potentialMoves) {
+        boolean isLegalMove = false;
 
         /*
         Check if this move is potentially legal
          */
-
         //Check if it's this player's turn
         if (playerToMove != piece.color) return false;
 
         //Check if desired move is potentially legal
-        if (!BitBoard.compareToken(moveToken, potentialMovesBitBoard)) return false;
+        if (!BitBoard.compareToken(move.getToken(), potentialMoves)) return false;
 
         /*
         Checks if this move puts player to move's king in check
         if this move puts their king in check, then it's illegal.
-
-        Will NOT check if there's a piece in the desired coordinates.
          */
 
-        //If there's not a piece at these coordinates we can inject our new coordinates in and be safe
-        if (Board.currentPieceLocations[moveToken] == null) {
+        /*
+        Check if this is a legal non-capture move
+         */
+        if (!Board.isSpaceOccupied(move)) {
             //Removes original coordinate of piece, so we can check it's new potential position
-            Board.currentPieceLocations[oldCoors.getToken()] = null;
+            Board.removePieceFromSpace(oldCoors);
 
             //Put new coordinates in
-            Board.currentPieceLocations[moveToken] = piece;
+            Board.addPieceToSpace(piece, move);
+            piece.setCoordinates(move);
 
             //Not a legal move is king is now in check
             isLegalMove = !isKingInCheck(piece.color);
 
             //Remove new coordinates
-            Board.currentPieceLocations[moveToken] = null;
+            Board.removePieceFromSpace(move);
 
             //Restore old coordinates
-            Board.currentPieceLocations[oldCoors.getToken()] = piece;
-        }
+            Board.addPieceToSpace(piece, oldCoors);
+            piece.setCoordinates(oldCoors);
 
         /*
-        Check for en-passant if pawn
-        */
+        Check if this is a legal capture
+         */
+        } else if (Board.isSpaceOccupied(move)) {
+            isLegalMove = isCaptureLegal(piece, oldCoors, move);
 
-        if (isLegalMove && piece instanceof Pawn) {
-            //Check if on correct row
-            if (piece.color == Piece.Color.WHITE && piece.getYCoor() == 120.0
-                    || piece.color == Piece.Color.BLACK && piece.getYCoor() == 300.0) {
-                if (checkEnPassant(piece)) return true;
-            }
+        /*
+        Check if this is a legal en-passant
+         */
+        } else if (piece instanceof Pawn && checkEnPassant((Pawn) piece)) {
+            int yOffset = (piece.color == Piece.Color.WHITE) ? -60 : 60;
+
+            move.setYCoor(move.getYCoor() + yOffset);
+
+            isLegalMove = isCaptureLegal(piece, oldCoors, move);
         }
 
         return isLegalMove;
     }
 
-    /**
-     * Checks if the player is attempting to capture a piece.
-     * Move generation for each piece won't include illegal captures,
-     * i.e. when the player is trying to take their own piece.
-     * @param piece Piece to move
-     * @return If the piece is attempting to capture a piece
-     */
-    private boolean isMoveForCapture(Piece piece) {
-        return (Board.currentPieceLocations[piece.getCoordinates().getToken()] != null);
-    }
-
-    /**
-     * Ensure piece capture does not put/leave the player's king in check.
-     * @param piece Piece to move
-     * @return If the piece captured an enemy piece or not
-     */
-    private boolean handleCapture(Piece piece) {
-        boolean isLegalMove;
-
-        int move = piece.getCoordinates().getToken();
+    private boolean isCaptureLegal(Piece piece, CoorPair oldCoors, CoorPair move) {
+        /*
+            If we're capturing, we want to temporarily replace the captured piece
+            with our own, and check if the king is in check afterwards.
+        */
 
         //Save the piece we're attempting to capture
-        Piece capturedPiece = Board.currentPieceLocations[move];
-        Board.currentPieceLocations[move] = null;
+        Piece capturedPiece = Board.getPieceAtSpace(move);
 
         //Saves the "captured" pieces coordinates
         CoorPair capturedOldCoors = capturedPiece.getCoordinates();
 
         //Temporarily change this pieces coordinates
-        Board.currentPieceLocations[oldCoors.getToken()] = null;
-        Board.currentPieceLocations[move] = piece;
+        Board.removePieceFromSpace(oldCoors);
+        Board.addPieceToSpace(piece, move);
+
+        //Set coordinates to prevent move calculation
+        capturedPiece.setCoordinates(new CoorPair(-1000, -1000));
 
         //Check if king is in check
-        isLegalMove = !isKingInCheck(piece.color);
+        boolean isLegalMove = !isKingInCheck(piece.color);
 
         //Give pieces its coordinates back and restore pieces map
         capturedPiece.setCoordinates(capturedOldCoors.getXCoor(), capturedOldCoors.getYCoor());
-        Board.currentPieceLocations[oldCoors.getToken()] = piece;
-        Board.currentPieceLocations[capturedOldCoors.getToken()] = capturedPiece;
-
-        //If this is a legal move we're capturing a piece
-        if (isLegalMove) {
-            //Remove piece from board
-            Board.removePieceFromBoard(capturedPiece);
-        }
-
+        Board.addPieceToSpace(piece, oldCoors);
+        Board.addPieceToSpace(capturedPiece, capturedOldCoors);
 
         return isLegalMove;
     }
@@ -340,32 +342,38 @@ public class Main extends Application {
      * @param piece Moved piece
      * @return If en passant legal
      */
-    private boolean checkEnPassant(Piece piece) {
-        CoorPair enemyCoor = new CoorPair(piece.getCoordinates());
+    private boolean checkEnPassant(Pawn piece) {
+        CoorPair enemyCoordinatesLeft = new CoorPair(piece.getCoordinates());
+        CoorPair enemyCoordinatesRight = new CoorPair(piece.getCoordinates());
 
-        //Increment up/down space based on color
-        enemyCoor.setYCoor(enemyCoor.getYCoor() + ((piece.color == Piece.Color.WHITE) ? 60.0 : -60.0));
-
-        //Check for piece in this space
-        if (Board.currentPieceLocations[enemyCoor.getToken()] != null) {
-            Piece enemy;
-
-            enemy = Board.currentPieceLocations[enemyCoor.getToken()];
-
-            //Ensure enemy piece is a pawn
-            if (!(enemy instanceof Pawn)) return false;
-
-            //Only pawns of opposite color will be en-passantable here
-            if (((Pawn) enemy).enPassantable) {
-                //Remove captured piece
-                //This is safe because we will never be able to en-passant and capture another piece at the same time
-                Board.removePieceFromBoard(enemy);
-
-                return true;
-            }
+        if ((piece.color == Piece.Color.WHITE && piece.getCoordinates().getRow() != 3) ||
+                (piece.color == Piece.Color.BLACK && piece.getCoordinates().getRow() != 4)) {
+            return false;
         }
 
-        return false;
+        //Increment left/right space
+        enemyCoordinatesLeft.setXCoor(piece.getXCoor() - 60);
+        enemyCoordinatesRight.setXCoor(piece.getXCoor() + 60);
+
+        Piece enemy = null;
+
+        //Check for piece in this space
+        if (Board.isSpaceOccupied(enemyCoordinatesLeft)) {
+            //Grab detected enemy
+            enemy = Board.getPieceAtSpace(enemyCoordinatesLeft);
+        } else if (Board.isSpaceOccupied(enemyCoordinatesRight)) {
+            //Grab detected enemy
+            enemy = Board.getPieceAtSpace(enemyCoordinatesRight);
+        }
+
+        //If no enemy found, return false
+        if (enemy == null) return false;
+
+        //Ensure enemy piece is a pawn
+        if (!(enemy instanceof Pawn)) return false;
+
+        //Only pawns of opposite color will be en-passantable here
+        return ((Pawn) enemy).enPassantable;
     }
 
     /**
@@ -374,9 +382,9 @@ public class Main extends Application {
      * @param pawn Pawn to check
      * @return If pawn has promoted or not
      */
-    public boolean handlePawnPromotion(Piece pawn) throws FileNotFoundException {
+    public boolean handlePawnPromotion(Piece pawn, CoorPair move) throws FileNotFoundException {
         //Return false if pawn is not on the correct rank
-        if (pawn.getYCoor() != 0 && pawn.getYCoor() != 420) return false;
+        if (move.getRow() != 0 && move.getRow() != 7) return false;
 
         //Gets a new queen in the correct color
         Piece newQueen = (pawn.color == Piece.Color.WHITE) ? new Queen(Piece.Color.WHITE) : new Queen(Piece.Color.BLACK);
@@ -384,9 +392,9 @@ public class Main extends Application {
         //Create queen and add to board
         Board.anchorPane.getChildren().add(newQueen.pieceObject);
         Board.pieces.add(newQueen);
-        newQueen.setCoordinates(pawn.getCoordinates());
+        newQueen.setCoordinates(move);
         newQueen.draw();
-        Board.currentPieceLocations[newQueen.getCoordinates().getToken()] = newQueen;
+        Board.addPieceToSpace(newQueen, move);
         setActions(newQueen);
 
         //Remove pawn from board
@@ -399,7 +407,7 @@ public class Main extends Application {
      * Checks for and handles castling.
      * @return If the player has castled
      */
-    public boolean handleCastle(Piece king) {
+    public boolean handleCastle(Piece king, CoorPair kingOldCoors) {
         //Check if we're castling
         for (Piece rook : Board.pieces.getPiecesByColor(king.color)) {
             //If not rook, continue looking for one
@@ -410,11 +418,11 @@ public class Main extends Application {
 
             //Checking right rook
             if (rook.getCoordinates()
-                    .coorEquals(new CoorPair(oldCoors.getXCoor() + 180, oldCoors.getYCoor()))) {
+                    .coorEquals(new CoorPair(kingOldCoors.getXCoor() + 180, kingOldCoors.getYCoor()))) {
                 //Checks if this move is trying to castle with right rook
                 if (king.getCoordinates()
                         .coorEquals(
-                                new CoorPair(oldCoors.getXCoor() + 120, oldCoors.getYCoor()))) {
+                                new CoorPair(kingOldCoors.getXCoor() + 120, kingOldCoors.getYCoor()))) {
                     castling = true;
                     rookXCoordinateOffset = -120;
                 }
@@ -422,11 +430,11 @@ public class Main extends Application {
 
             //Checking left rook
             if (rook.getCoordinates()
-                    .coorEquals(new CoorPair(oldCoors.getXCoor() - 240, oldCoors.getYCoor()))) {
+                    .coorEquals(new CoorPair(kingOldCoors.getXCoor() - 240, kingOldCoors.getYCoor()))) {
                 //Checks if this move is trying to castle with left rook
                 if (king.getCoordinates()
                         .coorEquals(
-                                new CoorPair(oldCoors.getXCoor() - 120, oldCoors.getYCoor()))) {
+                                new CoorPair(kingOldCoors.getXCoor() - 120, kingOldCoors.getYCoor()))) {
                     castling = true;
                     rookXCoordinateOffset = 180;
                 }
@@ -436,9 +444,9 @@ public class Main extends Application {
             if (!castling) continue;
 
             //Update location of rook
-            Board.currentPieceLocations[rook.getCoordinates().getToken()] = null;
+            Board.removePieceFromSpace(rook.getCoordinates());
             rook.setCoordinates(rook.getXCoor() + rookXCoordinateOffset, rook.getYCoor());
-            Board.currentPieceLocations[rook.getCoordinates().getToken()] = rook;
+            Board.addPieceToSpace(rook, rook.getCoordinates());
 
             //Play castling sound effect
             SoundControl.playCastling();
@@ -447,7 +455,7 @@ public class Main extends Application {
             break;
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -486,7 +494,6 @@ public class Main extends Application {
                 if ( BitBoard.compareToken(kingToken, piece.findPotentialMoves()) ) {
                     return true;
                 }
-
             }
         }
 
@@ -505,19 +512,21 @@ public class Main extends Application {
         //Temporarily sets checkmate to true
         inCheckmate = true;
 
+        long potentialMovesForPiece;
+
         //Check if opponent can make any legal moves
         for (Piece pieceToCheck : Board.pieces.getOpponentPieces(colorToCheck)) {
             //Find all potential moves
-            potentialMovesBitBoard = pieceToCheck.findPotentialMoves();
+            potentialMovesForPiece = pieceToCheck.findPotentialMoves();
 
             CoorPair oldPieceCoors = pieceToCheck.getCoordinates();
+            CoorPair move;
 
             //Test all potential moves
             for ( int i = 0; i < 64; i++ ) {
-                if (BitBoard.compareToken(i, potentialMovesBitBoard)) {
-                    pieceToCheck.setCoordinates(i);
-
-                    if (isPotentialMoveLegal(pieceToCheck)) {
+                if (BitBoard.compareToken(i, potentialMovesForPiece)) {
+                    move = new CoorPair(60 * (i % 8), 60 * Math.floor(i / 8f));
+                    if (isPotentialMoveLegal(pieceToCheck, oldPieceCoors, move, potentialMovesForPiece)) {
                         inCheckmate = false;
                         break;
                     }
