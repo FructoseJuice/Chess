@@ -11,7 +11,8 @@
       <element id="extracted-dir" path="$PATH_TO_FX$/javafx.swing.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PATH_TO_FX$/javafx.controls.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PATH_TO_FX$/javafx.graphics.jar" path-in-jar="/" />
-      <element id="dir-copy" path="$PROJECT_DIR$/../../javafx-sdk-19/bin" />
+      <element id="dir-copy" path="$PROJECT_DIR$/../../javafx-sdk-21.0.2/bin" />
+      <element id="dir-copy" path="$PROJECT_DIR$/resources" />
     </root>
   </artifact>
 </component>
