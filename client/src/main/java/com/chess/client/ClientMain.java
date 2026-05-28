@@ -589,7 +589,7 @@ public class ClientMain extends Application implements ClientNetworkManager.OnMe
     public void connectToServer() {
         networkManager = new ClientNetworkManager(
                 "chess.moonstream.stream",
-                5050,
+                443,
                 this
         );
     }
@@ -669,10 +669,11 @@ class ClientNetworkManager implements Runnable {
             InetAddress address = InetAddress.getByName(host);
             System.out.println("Connecting to host <" + host + "> : <" + address.getHostAddress() + ">");
             socket = new Socket(address, port);
-            //socket = new Socket("192.168.50.9", port);
+            System.out.println("Created socket");
 
             // Initialize streams
             out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
 
             // Notify success

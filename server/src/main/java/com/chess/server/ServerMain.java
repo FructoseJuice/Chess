@@ -90,6 +90,7 @@ class ClientHandler implements Runnable {
     public void run() {
         try {
             out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
 
             System.out.println("Sending INIT to new client...");
@@ -134,7 +135,6 @@ class ClientHandler implements Runnable {
     public void closeConnection() {
         try {
             socket.close();
-            exit(1);
         } catch (IOException ignored) {}
 
         ServerMain.disconnectClients();
