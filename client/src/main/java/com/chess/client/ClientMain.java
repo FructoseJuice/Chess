@@ -589,7 +589,7 @@ public class ClientMain extends Application implements ClientNetworkManager.OnMe
     public void connectToServer() {
         networkManager = new ClientNetworkManager(
                 "chess.moonstream.stream",
-                443,
+                2053,
                 this
         );
     }
@@ -673,7 +673,6 @@ class ClientNetworkManager implements Runnable {
 
             // Initialize streams
             out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
 
             // Notify success

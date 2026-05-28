@@ -17,7 +17,7 @@ import static java.lang.System.exit;
 import static java.lang.System.setOut;
 
 public class ServerMain {
-    private static final int PORT = 5050;
+    private static final int PORT = 2053;
 
     private static List<ClientHandler> clients = new ArrayList<>();
     private static ClientHandler whiteClientHandler = null;
@@ -90,7 +90,6 @@ class ClientHandler implements Runnable {
     public void run() {
         try {
             out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
 
             System.out.println("Sending INIT to new client...");
