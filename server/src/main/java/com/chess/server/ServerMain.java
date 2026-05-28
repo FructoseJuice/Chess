@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.System.exit;
+import static java.lang.System.setOut;
 
 public class ServerMain {
     private static final int PORT = 5050;
@@ -27,6 +28,7 @@ public class ServerMain {
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
+                System.out.println("Waiting on client...");
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress());
 
@@ -83,6 +85,7 @@ class ClientHandler implements Runnable {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
+            System.out.println("Sending INIT to new client...");
             InitPayload messagePayload = new InitPayload(color);
 
             // Send initial handshake assigning player color
@@ -94,6 +97,8 @@ class ClientHandler implements Runnable {
                 // Resend assignment
                 sendMessage(new Message(MessageType.INIT, messagePayload));
             }
+
+            System.out.println("INIT received from client");
 
             while (true) {
                 // Wait for move message from client

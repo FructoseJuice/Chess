@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.chess.common.Networking.*;
@@ -666,7 +667,9 @@ class ClientNetworkManager implements Runnable {
         try {
             // Resolve hostname to IP (handles domains like chess.example.com)
             InetAddress address = InetAddress.getByName(host);
-            socket = new Socket(address, port);
+            System.out.println("Connecting to host <" + host + "> : <" + address.getHostAddress() + ">");
+            //socket = new Socket(address, port);
+            socket = new Socket("192.168.102.246", port);
 
             // Initialize streams
             out = new ObjectOutputStream(socket.getOutputStream());
