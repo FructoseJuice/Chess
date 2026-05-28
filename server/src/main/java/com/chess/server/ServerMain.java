@@ -54,8 +54,15 @@ public class ServerMain {
     }
 
     public static void disconnectClients() {
-        whiteClientHandler.closeConnection();
-        blackClientHandler.closeConnection();
+        try {
+            whiteClientHandler.closeConnection();
+            blackClientHandler.closeConnection();
+        } catch (Exception ignored) {
+
+        } finally {
+            whiteClientHandler = null;
+            blackClientHandler = null;
+        }
     }
 
     // Forward message to other player

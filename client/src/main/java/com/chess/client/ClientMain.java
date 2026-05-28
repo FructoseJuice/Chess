@@ -668,8 +668,8 @@ class ClientNetworkManager implements Runnable {
             // Resolve hostname to IP (handles domains like chess.example.com)
             InetAddress address = InetAddress.getByName(host);
             System.out.println("Connecting to host <" + host + "> : <" + address.getHostAddress() + ">");
-            //socket = new Socket(address, port);
-            socket = new Socket("192.168.102.246", port);
+            socket = new Socket(address, port);
+            //socket = new Socket("192.168.50.9", port);
 
             // Initialize streams
             out = new ObjectOutputStream(socket.getOutputStream());
