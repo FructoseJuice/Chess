@@ -1,0 +1,33 @@
+package com.chess.common.Pieces;
+
+import com.chess.common.Utils.BitBoard;
+
+import java.io.FileNotFoundException;
+
+public class Queen extends Piece {
+    public Queen(Color color) throws FileNotFoundException {
+        super(PieceType.QUEEN, color);
+    }
+
+    @Override
+    public long findPotentialMoves() {
+        long legalMovesBitBoard = 0L;
+
+        //Find all diagonal and horizontal moves
+        legalMovesBitBoard = BitBoard.merge(legalMovesBitBoard, findPotentialDiagonalMoves());
+        legalMovesBitBoard = BitBoard.merge(legalMovesBitBoard, findPotentialHorizontalMoves());
+
+        return legalMovesBitBoard;
+    }
+
+    @Override
+    public long movesForCheck() {
+        long potentialMovesBitBoard = 0L;
+
+        //Find all diagonal and horizontal moves, including moves protecting pieces
+        potentialMovesBitBoard = BitBoard.merge(potentialMovesBitBoard, diagonalForCheck());
+        potentialMovesBitBoard = BitBoard.merge(potentialMovesBitBoard, horizontalForCheck());
+
+        return potentialMovesBitBoard;
+    }
+}
