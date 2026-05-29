@@ -588,8 +588,8 @@ public class ClientMain extends Application implements ClientNetworkManager.OnMe
      */
     public void connectToServer() {
         networkManager = new ClientNetworkManager(
-                "chess.moonstream.stream",
-                5050,
+                "ch.moonstream.stream",
+                8085,
                 this
         );
     }
