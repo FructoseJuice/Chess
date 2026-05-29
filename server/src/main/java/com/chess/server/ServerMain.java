@@ -8,6 +8,7 @@ import com.chess.common.Pieces.Piece;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import static java.lang.System.exit;
 import static java.lang.System.setOut;
 
 public class ServerMain {
-    private static final int PORT = 2053;
+    private static final int PORT = 5050;
 
     private static List<ClientHandler> clients = new ArrayList<>();
     private static ClientHandler whiteClientHandler = null;
@@ -26,7 +27,7 @@ public class ServerMain {
     public static void main(String[] args) {
         System.out.println("Starting Chess Server on port " + PORT + "...");
 
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT, 0, InetAddress.getByName("0.0.0.0"))) {
             while (true) {
                 System.out.println("Waiting on client...");
                 Socket clientSocket = serverSocket.accept();
